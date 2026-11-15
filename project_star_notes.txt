@@ -1,0 +1,305 @@
+PROJECT STAR - DATASET CLEANING AND OPT PLAN
+Optimizing Classroom Resource Allocation Using Optimal Policy Trees
+(Daniel Krupp, Adi Palaniappan)
+Notes compiled 2026-11-11
+
+==========================================================================================
+1. FILES
+==========================================================================================
+
+Data preparation
+  prepare_project_star.py          Downloads the AER STAR data -> project_star_students.csv
+  clean_project_star.py            Cleans it -> the three files below
+                                     python clean_project_star.py              (K cohort)
+                                     python clean_project_star.py --cohort all (all entrants)
+
+  project_star_students.csv        Raw: 11,598 students x 52 columns, one row per student,
+                                   separate columns for each grade (k, 1, 2, 3).
+  project_star_clean.csv           All 11,598 students, original columns plus derived columns
+                                   and flags (89 columns). Nothing dropped.
+  project_star_analysis.csv        Modeling file: 5,752 kindergarten-entry students, 78
+                                   schools, 25 columns (described in section 5).
+  project_star_school_capacity.csv One row per school: observed counts of regular / small /
+                                   aide students (n_regular, n_small, n_aide, n_total) and its
+                                   school_fold. Starting point for the capacities B_s.
+
+OPT pipeline (section 6)
+  opt_rewards.py                   Stage 1 (Python): cross-fitted rewards -> rewards_<tag>.csv
+  opt_trees.jl                     Stage 2 (Julia + IAI): trees and evaluation
+                                   -> results_<tag>.csv, trees_<tag>/*.html
+
+==========================================================================================
+2. WAS THE RAW DATA CLEAN?
+==========================================================================================
+
+Structurally, yes:
+  - every student_id is unique
+  - all category values are valid (no typos or stray codes)
+  - total_score = read + math everywhere it is defined
+  - no student has a score in a year when they were not in STAR
+
+There are 15 rows that look like duplicates (identical apart from student_id). These are
+different students who each have only one year of sparse data and no test scores. They
+aren't real duplicates, and they drop out of the analysis anyway because they have no
+outcome.
+
+The real problems are about study design rather than data errors: which treatment, which
+outcome, which features, and how to handle missing values and randomization. Those are
+covered in the next section.
+
+==========================================================================================
+3. CHOICES MADE IN DATASET CREATION
+==========================================================================================
+
+PROBLEM                                    WHAT WAS DONE
+-----------------------------------------  -----------------------------------------------
+Each student has up to 4 years of class    Treatment = class type in the student's FIRST
+type. Some students switched type after    year in STAR, which is the randomly assigned
+kindergarten, and those switches were not  one (an intent-to-treat analysis). Later class
+random.                                    types stay in the clean file for reference.
+
+Raw scores are on different scales in      Outcome = average of the reading and math
+each grade, so they can't be compared.     z-scores in the entry grade, each standardized
+                                           against students in regular classes (with or
+                                           without an aide) in that grade. Units are
+                                           standard deviations (SD), as in Krueger.
+
+The file mixes student traits with teacher Features are only things known before
+variables. The teacher a student got       assignment: gender, ethnicity group, age at
+depends on which class they were assigned  entry (from birth quarter), free lunch, and
+to, so teacher variables are affected by   school locale. Teacher variables stay in the
+the treatment.                             clean file but are not used as features.
+
+Asian, Hispanic, American Indian and       Grouped into white / black / other (plus
+"other" students together are under 1%.    "unknown" for missing).
+
+Missing values (scores about 8%, plus a    Students with no outcome are dropped. Missing
+little gender, birth date and lunch).      features are filled with the median, and a
+                                           flag column records each fill.
+
+Assignment was random WITHIN schools, and  Added assignment probabilities per school x
+school 14 had no regular class in          entry grade (p_regular, p_small, p_aide) for
+kindergarten.                              the DR estimator. School 14 (34 students) is
+                                           dropped because p_regular = 0 there.
+
+The proposal holds out entire schools.     Added school_fold (0-4): each school is randomly
+                                           assigned to one of 5 folds (seed 15), so held-
+                                           out schools are never seen in training.
+
+Birth is recorded as text ("1980 Q1").     age_at_entry = age in years on Sept 1 of the
+                                           entry year, using the middle of the birth
+                                           quarter (kindergarten = fall 1985).
+
+Default sample: the kindergarten cohort (6,325 students), which is the cleanest randomized
+sample. Students who joined in grades 1-3 were placed into whichever places were still
+open, so `--cohort all` (9,658 students) is less cleanly randomized and is a robustness
+check.
+
+==========================================================================================
+4. MISSING DATA AND HOW IT WAS RESOLVED
+==========================================================================================
+
+Kindergarten cohort: 6,325 students
+  - 539 missing the entry outcome (451 missing both scores, 85 missing reading only,
+    3 missing math only). Dropped, because the outcome needs both scores.
+    The missing share is the same in every class type (8.4-8.6%), so dropping these
+    students should not bias the comparison between class types.
+  - 34 in school 14 (no regular class). Dropped to keep every probability above zero.
+  = 5,752 students in 78 schools
+    (regular 2,005 / small 1,725 / aide 2,022)
+
+Features in the analysis file
+  gender          0 missing
+  age at entry    4 missing  -> filled with the median, age_at_entry_missing = 1
+  free lunch     17 missing  -> filled with the median, free_lunch_missing = 1
+  ethnicity       1 missing  -> category "unknown"
+
+Grade-3 outcome (outcome_g3): missing for 2,954 of 5,752 students (51%) because students
+left the study. It is NOT filled in, and it should not be used as an outcome without
+handling that loss (for example by weighting for attrition).
+
+Age outliers: 10 students are more than 1.5 years from the typical age for their grade
+(ages range from 3.8 to 7.5). They are flagged in age_outlier and kept.
+
+==========================================================================================
+5. project_star_analysis.csv - COLUMN GUIDE
+==========================================================================================
+
+One row per student, kindergarten entrants only, ready to model.
+
+Identifiers and grouping
+  student_id            row ID from the Rdatasets file (not the original STAR ID)
+  school_id             entry school; the unit for held-out evaluation
+  system_id             school system (district)
+  school_fold           0-4, the fold for held-out-school cross-validation
+  entry_grade           "k" in the default sample
+
+Treatment
+  treatment             regular / small / aide (class type in the first STAR year)
+
+Outcomes (SD units, measured against students in regular classes)
+  outcome               main outcome: average of the reading and math z-scores in the
+                        entry grade
+  outcome_read          reading z-score at entry
+  outcome_math          math z-score at entry
+  outcome_g3            grade-3 average z-score (51% missing, see section 4)
+
+Features (pre-treatment)
+  female                1 = female
+  ethnicity_grp         white / black / other / unknown
+  age_at_entry          age in years on Sept 1, 1985
+  free_lunch            1 = receives free lunch at entry
+  locale                rural / suburban / urban / inner-city (a school-level trait)
+  *_missing             1 = the value was filled in
+  age_outlier           flag, see section 4
+
+Randomization and diagnostics
+  p_regular, p_small,   share of each class type in the student's school (= the
+  p_aide                assignment probability used as p_t(x) in equation 1)
+  cell_size             number of students in that school and entry grade
+  years_in_star         1-4
+  stayed_initial_type   True if every later year had the same class type (65.7%).
+                        This includes the deliberate reshuffle of regular and aide
+                        students after kindergarten.
+
+Sanity check against the literature: small classes come out at +0.18 SD in kindergarten
+and aides at +0.01 SD, close to Krueger. Free-lunch students score about 0.5 SD lower in
+every class type, but the small-class gain is about the same size for free-lunch and
+non-free-lunch students.
+
+==========================================================================================
+6. OPT IMPLEMENTATION
+==========================================================================================
+
+IAI setup on this machine
+  IAI 3.2.2 is installed for JULIA (juliaup channel 1.11.6/IAI/3.2.2, environment @iai,
+  license at C:\Users\drkru\iai.lic). The Python wrapper (interpretableai) is NOT
+  installed. Because the system image preloads IAI, Julia code calls it as `IAI.` and
+  does not need a `using IAI` line. A single OptimalTreePolicyMaximizer fit needs a cp
+  value; GridSearch tunes cp automatically.
+
+Step 1 - Rewards (opt_rewards.py, Python/scikit-learn)
+  python opt_rewards.py [--method dr|dm|ipw] [--model rf|linear] [--placebo]
+  For each held-out school fold k:
+    - Test rewards: fit one outcome model per class type (f_regular, f_small, f_aide) on
+      all training schools, then compute equation (1) for the fold-k students.
+    - Training rewards: cross-fitted inside the training schools, so a student's own
+      fold never trained the model that scores them.
+  p_t(x) comes from the p_* columns. The smallest is 0.16, so inverse-propensity weights
+  stay at about 6 or less and no clipping is needed.
+  Output: rewards_<method>_<model>.csv (test_fold, role, student_id, G_regular, G_small,
+  G_aide). Default run on held-out data: regular -0.01, small +0.20, aide +0.00 SD.
+
+Step 2 - Trees and evaluation (opt_trees.jl, Julia + IAI)
+  julia +1.11.6/IAI/3.2.2 --project=@iai opt_trees.jl dr_rf
+  For each fold k and each cost lambda in {0, .05, .1, .15, .2, .3}:
+    - Subtract lambda from the small and aide training rewards (the budget penalty).
+    - Fit GridSearch(OptimalTreePolicyMaximizer, max_depth 1-3, minbucket 50).
+    - Predict on the fold-k schools and score with the test rewards (equation 4; no cost
+      subtracted).
+    - Compare with random allocation using the same shares, and with the free-lunch-first
+      heuristic using the same number of small places.
+  Also scores all-regular, all-small and all-aide.
+  Output: results_<tag>.csv and fold-0 trees as HTML in trees_<tag>/.
+
+Capacity constraints (equation 3)
+  Standard OPT has no built-in way to cap counts per school. Options, easiest first:
+    a) Cost penalty (implemented): sweep lambda. This controls the overall budget on
+       average, but not school by school.
+    b) Tree, then fill by school: use the tree's leaves as a priority order (by estimated
+       gain G_small - G_regular). Within each school, fill B_s from
+       project_star_school_capacity.csv in that order.
+    c) Your own MIP: a depth-2 tree written as a mixed-integer program with constraint (3)
+       added. Exact, but the most work.
+
+==========================================================================================
+7. WHAT TO EXPECT
+==========================================================================================
+
+- With no budget, the tree will probably be "everyone in small." Small classes help about
+  +0.18-0.20 SD for nearly everyone, and aides add about 0. The interesting results only
+  appear under constraints.
+- Differences between students may be weak. A single student's DR reward is very noisy,
+  so the tree can fit noise. Check whether real heterogeneity exists before tuning trees
+  (placebo, semi-synthetic test, causal forest).
+- With only about 6 features, depth 2-3 is plenty.
+- A legitimate possible finding: targeting does not beat random allocation, because the
+  benefit of small classes is about the same for everyone. Report it if that's what the
+  data shows.
+
+==========================================================================================
+8. EXPERIMENTS
+==========================================================================================
+
+Core results
+  1. Budget frontier (headline figure): plot policy value against the share of students
+     in small classes (0-100%). Show OPT, random allocation at the same budget, and the
+     free-lunch-first heuristic. OPT should sit above the other two.
+  2. Per-school capacities: set B_s to 50% / 100% / 150% of the places each school
+     actually had, using fill-by-school (option b above).
+  3. Depth: compare depths 1-4, weighing the value each level adds against the
+     interpretability it costs.
+
+Methods comparison
+  4. Reward estimators: the direct method vs IPW vs DR, each with linear and random-forest
+     outcome models (--method / --model). Does the learned tree change?
+  5. Propensities: the per-school p_* values vs the overall shares (about .35/.30/.35).
+
+Equity and fairness
+  6. Bottom-quartile objective: approximate it by giving extra weight to the rewards of
+     students whose PREDICTED score in a regular class (f_regular) is in the bottom
+     quartile. Vary the weight and report the trade-off between overall value and
+     bottom-quartile value.
+  7. Subgroup values: report every policy's value separately by free lunch, ethnicity and
+     gender.
+  8. Leaving out sensitive features: drop ethnicity and gender, then report the change in
+     value and how many students' assignments change.
+
+Making sure the results are real
+  9. Placebo: shuffle class types within schools (--placebo) and rerun. OPT's gain over
+     random allocation should go to about zero. If not, the pipeline is fitting noise.
+ 10. Semi-synthetic test: add a known effect to the outcome (for example, small classes
+     help free-lunch students +0.3 SD more) and check that the tree finds that split.
+ 11. Stability: across the 5 folds and bootstrap resamples, how often do the same splits
+     appear?
+ 12. Robustness: --cohort all; the grade-3 outcome (needs weighting for students who
+     left); reading and math separately.
+
+Suggested order: 1, 9, 10 first. Together they show early whether there is real
+heterogeneity for OPT to exploit.
+
+==========================================================================================
+9. FIRST RESULTS (DR rewards, random-forest outcome models, 5 held-out school folds)
+==========================================================================================
+
+Values are held-out policy values in SD units, averaged over the 5 folds
+(results_dr_rf.csv). Each comparison uses the same share of small places as OPT.
+
+  lambda  share small  OPT     random, same budget  free-lunch first
+  0.00    0.92         0.160   0.162                0.176
+  0.05    0.99         0.199   0.197                0.203
+  0.10    0.86         0.140   0.154                0.163
+  0.15    0.74         0.115   0.133                0.121
+  0.20    0.67         0.125   0.117                0.123
+  0.30    0.16         0.008   0.018                0.007
+  Single-class-type policies: all small 0.199, all aide -0.002, all regular -0.016
+
+What this shows
+  - OPT does NOT beat random allocation or the free-lunch heuristic at any budget. Its
+    gains range from -0.02 to +0.01 SD, while the spread across folds is 0.03-0.07 SD, so
+    every difference is within noise. This fits the earlier finding that the small-class
+    benefit is about the same for everyone in kindergarten.
+  - The trees are shallow (chosen depth 1.2-1.8 on average). Even with no cost, fold 1
+    sent 40% of students to aide classes, which is a sign of fitting noise.
+  - The cost penalty does not control the budget smoothly: the share of small places
+    jumps around between folds and is not monotone in lambda. For a clean budget
+    frontier, fix the number of small places directly (for example, rank students by
+    their leaf's estimated gain and fill a set share) instead of sweeping lambda.
+
+Next steps this points to
+  - Run the placebo (experiment 9) and the semi-synthetic test (experiment 10), to confirm
+    the pipeline CAN find heterogeneity when it is there.
+  - Try outcomes where heterogeneity is more plausible: the grade-3 outcome (Krueger finds
+    larger gains for disadvantaged students over time), reading vs math, and the all-
+    entrants cohort.
+  - Run with --model linear and --method dm, which give less noisy rewards (experiment 4).

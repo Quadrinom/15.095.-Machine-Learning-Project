@@ -1,0 +1,53 @@
+column,description,role_note
+student_id,"Dataset row identifier; newly named from the Rdatasets row index, not necessarily the original STAR study ID",potential covariate; verify timing before modeling
+gender,Student gender,potential covariate; verify timing before modeling
+ethnicity,Student ethnicity,potential covariate; verify timing before modeling
+birth,Student birth quarter,potential covariate; verify timing before modeling
+stark,Observed classroom assignment in kindergarten (regular/small/regular-with-aide),treatment (not a feature)
+star1,Observed classroom assignment in first grade (regular/small/regular-with-aide),treatment (not a feature)
+star2,Observed classroom assignment in second grade (regular/small/regular-with-aide),treatment (not a feature)
+star3,Observed classroom assignment in third grade (regular/small/regular-with-aide),treatment (not a feature)
+readk,Reading scaled score in kindergarten,outcome (not a pre-treatment feature)
+read1,Reading scaled score in first grade,outcome (not a pre-treatment feature)
+read2,Reading scaled score in second grade,outcome (not a pre-treatment feature)
+read3,Reading scaled score in third grade,outcome (not a pre-treatment feature)
+mathk,Math scaled score in kindergarten,outcome (not a pre-treatment feature)
+math1,Math scaled score in first grade,outcome (not a pre-treatment feature)
+math2,Math scaled score in second grade,outcome (not a pre-treatment feature)
+math3,Math scaled score in third grade,outcome (not a pre-treatment feature)
+lunchk,Free-lunch eligibility in kindergarten,potential covariate; verify timing before modeling
+lunch1,Free-lunch eligibility in first grade,potential covariate; verify timing before modeling
+lunch2,Free-lunch eligibility in second grade,potential covariate; verify timing before modeling
+lunch3,Free-lunch eligibility in third grade,potential covariate; verify timing before modeling
+schoolk,School locale category in kindergarten; not an identifier,potential covariate; verify timing before modeling
+school1,School locale category in first grade; not an identifier,potential covariate; verify timing before modeling
+school2,School locale category in second grade; not an identifier,potential covariate; verify timing before modeling
+school3,School locale category in third grade; not an identifier,potential covariate; verify timing before modeling
+degreek,Teacher education level in kindergarten,potential covariate; verify timing before modeling
+degree1,Teacher education level in first grade,potential covariate; verify timing before modeling
+degree2,Teacher education level in second grade,potential covariate; verify timing before modeling
+degree3,Teacher education level in third grade,potential covariate; verify timing before modeling
+ladderk,Teacher career ladder status in kindergarten,potential covariate; verify timing before modeling
+ladder1,Teacher career ladder status in first grade,potential covariate; verify timing before modeling
+ladder2,Teacher career ladder status in second grade,potential covariate; verify timing before modeling
+ladder3,Teacher career ladder status in third grade,potential covariate; verify timing before modeling
+experiencek,Teacher teaching experience in years in kindergarten,potential covariate; verify timing before modeling
+experience1,Teacher teaching experience in years in first grade,potential covariate; verify timing before modeling
+experience2,Teacher teaching experience in years in second grade,potential covariate; verify timing before modeling
+experience3,Teacher teaching experience in years in third grade,potential covariate; verify timing before modeling
+tethnicityk,Teacher ethnicity in kindergarten,potential covariate; verify timing before modeling
+tethnicity1,Teacher ethnicity in first grade,potential covariate; verify timing before modeling
+tethnicity2,Teacher ethnicity in second grade,potential covariate; verify timing before modeling
+tethnicity3,Teacher ethnicity in third grade,potential covariate; verify timing before modeling
+systemk,School system ID in kindergarten,grouping identifier (not a feature)
+system1,School system ID in first grade,grouping identifier (not a feature)
+system2,School system ID in second grade,grouping identifier (not a feature)
+system3,School system ID in third grade,grouping identifier (not a feature)
+schoolidk,School ID in kindergarten; use for grouped holdouts,grouping identifier (not a feature)
+schoolid1,School ID in first grade; use for grouped holdouts,grouping identifier (not a feature)
+schoolid2,School ID in second grade; use for grouped holdouts,grouping identifier (not a feature)
+schoolid3,School ID in third grade; use for grouped holdouts,grouping identifier (not a feature)
+total_score_k,Reading plus math scaled scores in kindergarten; missing when either component missing,outcome (not a pre-treatment feature)
+total_score_1,Reading plus math scaled scores in first grade; missing when either component missing,outcome (not a pre-treatment feature)
+total_score_2,Reading plus math scaled scores in second grade; missing when either component missing,outcome (not a pre-treatment feature)
+total_score_3,Reading plus math scaled scores in third grade; missing when either component missing,outcome (not a pre-treatment feature)
