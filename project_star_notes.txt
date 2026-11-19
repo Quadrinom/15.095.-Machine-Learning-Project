@@ -2,7 +2,8 @@ PROJECT STAR - DATASET CLEANING AND OPT PLAN
 Optimizing Classroom Resource Allocation Using Optimal Policy Trees
 (Daniel Krupp, Adi Palaniappan)
 Notes compiled 2026-11-11
-Updated 2026-11-18: staff feedback, decoded trees, code gaps, Mac setup (section 10).
+Updated 2026-11-18: staff feedback, decoded trees, code gaps, Mac setup, reproduction
+check (section 10).
 The shared task list is in CLAUDE.md.
 
 ==========================================================================================
@@ -385,12 +386,11 @@ c) Gaps in the current code (not fixed yet)
 
 d) Setup on Adi's Mac (checked 2026-11-18)
   - julia +1.11.6/IAI/3.2.2 loads IAI 3.2.2 (academic license) and fits a policy tree.
-    Its environment has CSV and DataFrames but not CategoricalArrays, which opt_trees.jl
-    needs. Install it once:
+    Its environment had CSV and DataFrames but not CategoricalArrays, which opt_trees.jl
+    needs. CategoricalArrays v0.10.8 was added on 2026-11-18 with:
       julia +1.11.6/IAI/3.2.2 -e 'import Pkg; Pkg.add("CategoricalArrays")'
     There is no @iai environment, so run without --project=@iai:
       julia +1.11.6/IAI/3.2.2 opt_trees.jl dr_rf
-    The pipeline has not been re-run on this machine yet.
   - Gurobi (academic license, valid to 2027-08-24) and JuMP are installed for plain
     julia +1.11.6. They can be used for the exact MIP version of the capacity
     constraints (option c in section 6).
@@ -405,3 +405,12 @@ e) Open decisions
   - Age bands and a minimum group size for the subgroup allocation.
   - Whether to use a causal forest only as a check for heterogeneity. A forest-based
     policy benchmark was dropped from scope.
+
+f) Reproduction on Adi's Mac (2026-11-18; task 6 in CLAUDE.md)
+  The pipeline was re-run on copies of the files, so no committed output was
+  overwritten.
+    clean_project_star.py    all three output files byte-for-byte identical
+    opt_rewards.py (dr, rf)  rewards identical up to rounding (differences below 1e-14)
+    opt_trees.jl dr_rf       on the committed rewards: all 105 result rows and all six
+                             fold-0 trees match
+  prepare_project_star.py (the download) was not re-run; the committed raw file was used.

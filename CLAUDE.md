@@ -48,15 +48,15 @@ Details and counts are in `project_star_notes.txt` sections 2–6.
 
 Not split by person. Status as of 2026-11-18.
 
-**Done (first versions):**
+**Done:**
 1. Data preparation and cleaning.
 2. Counterfactual rewards: DR with random forests. DM, IPW and linear models are coded but not run.
 3. Unconstrained OPT (IAI, depth 1–3).
 4. Baselines: all-regular, all-small, all-aide, random, free-lunch-first, with gaps (see Baselines below).
 5. Held-out DR evaluation for the DR-RF configuration.
+6. Pipeline re-run on Adi's Mac (2026-11-18): cleaning outputs byte-for-byte identical, rewards identical up to rounding, and all 105 result rows and six fold-0 trees match. Details in notes section 10f.
 
 **To do (rough priority order):**
-6. Re-run the existing pipeline on Adi's Mac and confirm the results match (see Environment).
 7. Placebo check: run the trees on placebo rewards. OPT's gain over random should be about zero.
 8. Semi-synthetic check: plant a known effect (e.g. small classes help free-lunch students +0.3 SD more) and check that the tree finds it.
 9. Budget frontier with a fixed share of small places instead of the λ sweep (the λ sweep does not control the budget smoothly).
@@ -175,9 +175,9 @@ A bottom-quartile objective must define the group **before treatment**. STAR has
 
 **Adi's Mac (checked 2026-11-18):**
 - **Julia + IAI:** `julia +1.11.6/IAI/3.2.2` loads IAI 3.2.2 (academic license) and fits a policy tree. IAI is preloaded, so use `IAI.` without `using IAI`.
-  - Its environment (`Julia_v1_11_6__IAI_v3_2_2`) has CSV and DataFrames but **not CategoricalArrays**, which `opt_trees.jl` imports. Fix once with `julia +1.11.6/IAI/3.2.2 -e 'import Pkg; Pkg.add("CategoricalArrays")'`.
+  - Its environment (`Julia_v1_11_6__IAI_v3_2_2`) has CSV, DataFrames and CategoricalArrays. CategoricalArrays v0.10.8 was added on 2026-11-18 because `opt_trees.jl` imports it.
   - There is no `@iai` environment here, so run `julia +1.11.6/IAI/3.2.2 opt_trees.jl dr_rf` without `--project=@iai`.
-  - The pipeline has **not** yet been re-run on this machine.
+  - The full pipeline was re-run here on 2026-11-18 and reproduces Daniel's outputs (task 6).
 - **Gurobi + JuMP:** installed for plain `julia +1.11.6` (default v1.11 environment). Academic license valid to 2027-08-24; a test MIP solved.
 - **Python:** the system `python3` has no pandas. Use `~/opt/anaconda3/bin/python3` (pandas 1.4.4, scikit-learn 1.0.2, numpy 1.21.5).
 
