@@ -20,10 +20,20 @@ Do not presuppose that small classes are best for every student, or that the aid
 
 A first end-to-end pipeline exists (commit `07283cd`, 15 Nov 2026): data download → cleaning → cross-fitted rewards → policy trees → held-out evaluation. See `project_star_notes.txt` sections 1–9.
 
-- **Only one configuration has been run in full:** DR rewards with random-forest outcome models (`rewards_dr_rf.csv`, `results_dr_rf.csv`, fold-0 trees in `trees_dr_rf/`). Placebo rewards (`rewards_dr_linear_placebo.csv`) exist, but the tree stage has not been run on them.
-- **First results** (held-out DR value in SD units, mean over 5 folds): OPT does **not** beat random allocation or free-lunch-first at any cost level. Differences range from −0.02 to +0.01 SD, while results vary by 0.03–0.07 SD between folds. All-small 0.199, all-aide −0.002, all-regular −0.016.
-- **The fold-0 trees look like noise.** The split feature changes at every cost level (age ≥ 6.165 → regular at λ=0.05; suburban → regular at λ=0.1 and 0.15; girls → regular, boys → small at λ=0.2), and no tree uses free lunch. Decoded in notes section 10b.
+- **Runs done:**
+  - Main configuration: DR rewards with random-forest outcome models (`rewards_dr_rf.csv`, `results_dr_rf.csv`, trees in `trees_dr_rf/`).
+  - Trees trained on DM-RF, DR-linear and DM-linear rewards, each scored with the DR-RF test rewards (`results_<tag>__eval_dr_rf.csv`).
+  - Semi-synthetic runs (file names contain `_plant_`; SYNTHETIC).
+  - Placebo rewards (`rewards_dr_linear_placebo.csv`) exist, but the tree stage has not been run on them.
+- **Main result** (held-out DR value in SD units, mean over 5 folds): OPT does **not** beat random allocation or free-lunch-first at any cost level. Differences range from −0.02 to +0.01 SD, while results vary by 0.03–0.07 SD between folds. All-small 0.199, all-aide −0.002, all-regular −0.016.
+- **Less noisy rewards don't change this.** Trees trained on DM or linear rewards beat random by at most +0.01 to +0.04 SD, at a single cost level and within fold noise. DM-trained trees send 5–15% of students to aide classes, which loses value. Notes section 11.
+- **The method can find real differences (semi-synthetic test, SYNTHETIC).** With an extra +0.3 SD small-class benefit planted for free-lunch students, the trees split on free lunch in 5 of 5 folds and beat random by +0.07 ± 0.02 SD at λ=0.3. At +0.2 SD the effect is found in 3 of 5 folds; at +0.1 SD, in 1 of 5. In the real data the small-class gain differs by only 0.004 SD between free-lunch and other students (0.181 vs 0.177), far below that threshold. Notes section 11.
+- **The real trees look like noise.** The split feature changes with the cost level and between folds.
+  - Fold 0: age ≥ 6.165 → regular at λ=0.05; suburban → regular at λ=0.1 and 0.15; girls → regular, boys → small at λ=0.2. No fold-0 tree uses free lunch.
+  - Across all five folds, free lunch appears only at λ=0.3, in 2 of 5.
+  - Even with a strong planted effect the trees add spurious gender splits (4 of 5 folds), so gender splits in the real trees are likely noise.
 - **Our own kindergarten data:** small classes +0.18 SD, aides +0.01 SD. The small-class gain is the same with and without free lunch.
+- **Working conclusion so far:** in kindergarten, *who* gets the small-class seats barely matters; *how many* seats there are is what counts. Still to be tested with a fixed-share budget curve and per-school capacities.
 - **Per-school capacity constraints (the main extension) are not implemented.** Only a global cost penalty exists.
 - **The teaching staff asked for a subgroup-level allocation comparison** (see below). Not started.
 
@@ -40,8 +50,8 @@ Details and counts are in `project_star_notes.txt` sections 2–6.
 | Features | `female`, `age_at_entry`, `free_lunch`, `ethnicity_grp` (white/black/other/unknown), `locale` (rural/suburban/urban/inner-city), plus `*_missing` flags. Teacher variables are excluded (they depend on the assigned class) |
 | Propensities | Each class type's share within school × entry grade (`p_regular`, `p_small`, `p_aide`). Minimum 0.161, no clipping |
 | Splits | 5 folds of whole schools (`school_fold`, seed 15). Training rewards are cross-fitted within training schools; test rewards use outcome models fit on all training schools |
-| Rewards code | `opt_rewards.py` (Python, scikit-learn): `--method dr|dm|ipw`, `--model rf|linear`, `--placebo` |
-| Trees code | `opt_trees.jl` (Julia + IAI 3.2.2 `OptimalTreePolicyMaximizer`): GridSearch over `max_depth` 1–3, `minbucket` 50 |
+| Rewards code | `opt_rewards.py` (Python, scikit-learn). Options: `--method` dr / dm / ipw, `--model` rf / linear, `--placebo`, and `--plant DELTA --plant-group` free_lunch / young (semi-synthetic). The linear model drops one reference level per category |
+| Trees code | `opt_trees.jl <tag> [eval_tag]` (Julia + IAI 3.2.2 `OptimalTreePolicyMaximizer`): GridSearch over `max_depth` 1–3, `minbucket` 50. The optional `eval_tag` picks the rewards that score held-out schools. Every fold's tree is saved as text |
 | Budget (current) | Global cost penalty λ ∈ {0, .05, .1, .15, .2, .3} subtracted from small and aide training rewards |
 
 ## Task list
@@ -55,17 +65,17 @@ Not split by person. Status as of 2026-11-18.
 4. Baselines: all-regular, all-small, all-aide, random, free-lunch-first, with gaps (see Baselines below).
 5. Held-out DR evaluation for the DR-RF configuration.
 6. Pipeline re-run on Adi's Mac (2026-11-18): cleaning outputs byte-for-byte identical, rewards identical up to rounding, and all 105 result rows and six fold-0 trees match. Details in notes section 10f.
+8. Semi-synthetic check (2026-11-18): planted effects of +0.3 SD are found in 5 of 5 folds, +0.2 SD in 3 of 5, +0.1 SD in 1 of 5. Trees were also trained on DM-RF, DR-linear and DM-linear rewards (part of task 15), and a bug in the linear-model rewards was fixed. Details in notes section 11.
 
 **To do (rough priority order):**
-7. Placebo check: run the trees on placebo rewards. OPT's gain over random should be about zero.
-8. Semi-synthetic check: plant a known effect (e.g. small classes help free-lunch students +0.3 SD more) and check that the tree finds it.
+7. Placebo check: run the trees on placebo rewards. OPT's gain over random should be about zero. Now mainly a yardstick for noise (how far apart policies land by chance), so consider several shuffles.
 9. Budget frontier with a fixed share of small places instead of the λ sweep (the λ sweep does not control the budget smoothly).
 10. Per-school capacity constraints (main extension). See Capacity constraints.
 11. Subgroup-level allocation baseline (staff feedback).
 12. Fix the baseline gaps: aide seats in the heuristic, per-school matching.
 13. Uncertainty: school-level bootstrap for policy values and for differences between policies.
 14. Subgroup values (free lunch, ethnicity, gender) and a run without sensitive features.
-15. Robustness: DM vs DR, linear vs RF, propensity choice, depth, tree stability, other outcomes and cohort.
+15. Robustness: propensity choice, depth, tree stability, other outcomes and cohort. (DM vs DR and linear vs RF are done for the λ sweep; see task 8.)
 16. EDA figures and data summary table.
 17. Report and presentation.
 
@@ -151,6 +161,7 @@ V_hat(pi) = (1 / n_test) * sum_{i in test} Gamma_hat_test[i, pi(x_i)]
 ```
 
 - **Current protocol:** 5-fold cross-validation over schools; every school is a test school once. Tuning inside each fold is clean, but there is **no locked test set**. Any design choice made after looking at `results_dr_rf.csv` has seen every school (open decision).
+- **One yardstick:** policies trained on other rewards are scored with the DR-RF test rewards (`opt_trees.jl <tag> dr_rf`), so every comparison uses the same evaluation.
 - **Report:** mean value, difference from baselines, resource use, quota violations, and uncertainty that respects school clustering (school-level bootstrap).
 - **Subgroups:** report values by free lunch, ethnicity and gender. Optimizing the overall mean can hide harm to disadvantaged groups.
 - **Sensitive features:** run without ethnicity and gender; report the change in value and how many assignments change.
@@ -193,8 +204,8 @@ A bottom-quartile objective must define the group **before treatment**. STAR has
 - Be cautious about attrition, class switching after kindergarten, and the grade-3 outcome.
 - Keep literature claims separate from our findings. Krueger reported larger small-class gains for Black and free-lunch students; in our kindergarten data the gain is the same by free lunch.
 - Single-fold results are noisy (fold spread 0.03–0.07 SD). Don't interpret a difference without an uncertainty estimate.
-- Examine splits on gender or ethnicity carefully before reporting them.
-- Only describe results that exist in results files. Results exist only for DR-RF; don't describe other configurations as run.
+- Examine splits on gender or ethnicity carefully before reporting them. The semi-synthetic runs show the trees add gender splits even when they are pure noise.
+- Only describe results that exist in results files (Current status lists which runs exist). Files with `_plant_` in the name are SYNTHETIC; never report them as STAR results.
 - Do not silently substitute a non-OPT method for OPT. For exact MIPs, report solver status, time and gap; don't call an infeasible or approximate result optimal.
 - Persist seeds, splits, model parameters, propensity assumptions, capacities, costs and results.
 - Don't overwrite existing data, results or code without checking them first. Record changes in `project_star_notes.txt`.

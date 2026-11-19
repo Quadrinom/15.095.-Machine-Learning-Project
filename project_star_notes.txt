@@ -3,7 +3,8 @@ Optimizing Classroom Resource Allocation Using Optimal Policy Trees
 (Daniel Krupp, Adi Palaniappan)
 Notes compiled 2026-11-11
 Updated 2026-11-18: staff feedback, decoded trees, code gaps, Mac setup, reproduction
-check (section 10).
+check (section 10); semi-synthetic test, DM/linear runs, linear-model bug fix
+(section 11).
 The shared task list is in CLAUDE.md.
 
 ==========================================================================================
@@ -205,6 +206,7 @@ Step 2 - Trees and evaluation (opt_trees.jl, Julia + IAI)
       heuristic using the same number of small places.
   Also scores all-regular, all-small and all-aide.
   Output: results_<tag>.csv and fold-0 trees as HTML in trees_<tag>/.
+  New since 2026-11-18 (--plant, evaluation tag, text trees for every fold): section 11.
 
 Capacity constraints (equation 3)
   Standard OPT has no built-in way to cap counts per school. Options, easiest first:
@@ -365,9 +367,10 @@ b) What the fold-0 trees say (trees_dr_rf/, trained on folds 1-4, 4,700 students
   0.20    girls (2,306) -> regular; boys (2,394) -> small
   0.30    no split: everyone regular
 
-  The split changes feature at every lambda and never uses free lunch, so these look
-  like noise rather than real differences between students. No fold-0 tree assigns aide
-  classes. The gender split needs care before it appears in a report.
+  The split changes feature at every lambda and no fold-0 tree uses free lunch, so these
+  look like noise rather than real differences between students. No fold-0 tree assigns
+  aide classes. The gender split needs care before it appears in a report. (Across all
+  five folds, free lunch does appear at lambda 0.3, in 2 of 5 folds; see section 11d.)
 
 c) Gaps in the current code (not fixed yet)
   - free_lunch_first never assigns aide seats. When OPT uses aide places the comparison
@@ -414,3 +417,86 @@ f) Reproduction on Adi's Mac (2026-11-18; task 6 in CLAUDE.md)
     opt_trees.jl dr_rf       on the committed rewards: all 105 result rows and all six
                              fold-0 trees match
   prepare_project_star.py (the download) was not re-run; the committed raw file was used.
+
+==========================================================================================
+11. SEMI-SYNTHETIC TEST AND LESS NOISY REWARDS (2026-11-18, Adi)
+==========================================================================================
+
+a) Code changes. Default behaviour is unchanged: opt_trees.jl dr_rf still reproduces
+   results_dr_rf.csv exactly.
+  - opt_rewards.py --plant DELTA --plant-group free_lunch|young (semi-synthetic test)
+    adds DELTA SD to the observed outcome of small-class students in the group.
+      free_lunch  free-lunch students: 2,757 (48%), 809 of them in small classes
+      young       age_at_entry below the median: 1,540 (27%; ages come in quarter-year
+                  steps, so many students sit exactly at the median), 457 in small
+    Output file names contain _plant_. SYNTHETIC: never report them as STAR results.
+  - opt_rewards.py, bug fix for --model linear. With every category level plus an
+    intercept the regression is rank-deficient (rank 12 of 14). On this machine least
+    squares returned coefficients around -5e12, and 20 of 28,760 reward rows blew up
+    (held-out means around 1e10). Fix: drop one reference level per category, for the
+    linear model only. Dropping a redundant column doesn't change a correctly solved
+    fit, so rewards_dr_linear_placebo.csv (normal range) is unaffected. Random-forest
+    rewards are unchanged.
+  - opt_trees.jl [tag] [eval_tag]: the optional second argument picks the rewards that
+    score the held-out schools. Trees trained on DM or linear rewards are scored with
+    the same DR-RF rewards as everything else; output results_<tag>__eval_<eval_tag>.csv.
+  - opt_trees.jl now saves every fold's tree as text,
+    trees_<tag>/tree_fold<k>_lam<lam>.txt (also added for the original dr_rf run).
+  - summarize_runs.py prints the tables below from the results and tree files.
+
+b) Semi-synthetic test (SYNTHETIC), DR-RF rewards, lambda = 0.3 (the cost level where
+   only some students should get small classes)
+
+   planted effect          folds splitting on     OPT - random
+                           the planted feature    (mean +/- sd over the 5 folds)
+   +0.1 SD, free lunch     1 of 5                 +0.019 +/- 0.055
+   +0.2 SD, free lunch     3 of 5                 +0.037 +/- 0.031
+   +0.3 SD, free lunch     5 of 5                 +0.067 +/- 0.017
+   +0.3 SD, young          5 of 5 (age)           +0.030 +/- 0.029
+
+  The pipeline finds a planted difference of about 0.3 SD reliably, partly at 0.2 SD,
+  and not at 0.1 SD. Even at +0.3 SD the trees also split on gender in 4 of 5 folds,
+  which is pure noise. At low lambda nobody should be refused a small class, so no
+  split is expected there.
+
+  For comparison, in the real data the small-class gain (difference in raw means) is
+  0.181 SD for free-lunch students and 0.177 SD for the rest: a 0.004 SD difference.
+
+c) Real data: trees trained on less noisy rewards, all scored with DR-RF test rewards
+
+  Single students' DR rewards are very noisy: sd of G_small about 1.8, range roughly
+  -13 to +20. DM rewards are much smoother: sd about 0.3, range roughly -1 to +1.6.
+
+   rewards used for training   best OPT - random over the lambdas   at lambda
+   DR, random forest           +0.008 +/- 0.055                     0.20
+   DM, random forest           +0.018 +/- 0.016                     0.20
+   DR, linear                  +0.035 +/- 0.039                     0.20
+   DM, linear                  +0.014 +/- 0.033                     0.20
+
+  At the other lambdas the gap is about zero or negative. Trees trained on DM rewards
+  send 5-15% of students to aide classes at lambda 0.2 or below, which costs value
+  (about -0.02 SD vs random at lambda 0). Picking the best of six lambdas also flatters
+  these numbers.
+
+d) Correction to section 10b
+  No fold-0 tree uses free lunch, but across all five folds of the original DR-RF run
+  free lunch appears at lambda 0.3 in 2 of 5 folds (also female 2, locale 2, age 1).
+
+e) What this means
+  The method works: it finds differences between students of about 0.3 SD or more.
+  The real kindergarten data shows nothing close to that, so OPT matching random
+  allocation is the expected answer, not a malfunction. Working conclusion: in
+  kindergarten, who gets the small-class seats barely matters; how many seats there
+  are is what counts. Next: the fixed-share budget curve (experiment 1), per-school
+  capacities, then the staff's subgroup comparison (experiment 13).
+
+f) New files
+  rewards_dm_rf.csv, rewards_dr_linear.csv, rewards_dm_linear.csv
+  results_dm_rf__eval_dr_rf.csv, results_dr_linear__eval_dr_rf.csv,
+    results_dm_linear__eval_dr_rf.csv, and trees_dm_rf/, trees_dr_linear/,
+    trees_dm_linear/
+  SYNTHETIC: rewards_dr_rf_plant_free_lunch0.1/0.2/0.3.csv and
+    rewards_dr_rf_plant_young0.3.csv, with matching results_dr_rf_plant_*.csv and
+    trees_dr_rf_plant_*/
+  trees_dr_rf/tree_fold<k>_lam<lam>.txt: text trees for all folds of the original run
+  summarize_runs.py

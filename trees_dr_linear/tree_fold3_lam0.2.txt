@@ -1,0 +1,4 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: female < 0.5
+    2) Prescribe: small, 2359 points, error 19.62
+    3) Prescribe: regular, 2240 points, error 19.44

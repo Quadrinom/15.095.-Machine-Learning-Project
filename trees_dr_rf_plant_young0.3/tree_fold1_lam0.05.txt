@@ -1,0 +1,4 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: age_at_entry < 6.165
+    2) Prescribe: small, 4472 points, error 19.95
+    3) Prescribe: regular, 124 points, error 20.55

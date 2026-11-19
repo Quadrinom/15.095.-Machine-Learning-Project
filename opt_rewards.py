@@ -1,9 +1,12 @@
 """Stage 1 of the OPT pipeline: cross-fitted counterfactual rewards (Gamma, eq. 1).
 
 Run: python opt_rewards.py [--method dr|dm|ipw] [--model rf|linear] [--placebo]
+                           [--plant DELTA --plant-group free_lunch|young]
 Input:  project_star_analysis.csv (from clean_project_star.py), same folder
-Output: rewards_<method>_<model>[_placebo].csv, long format:
+Output: rewards_<method>_<model>[_placebo][_plant_<group><delta>].csv, long format:
         test_fold, role (train/test), student_id, G_regular, G_small, G_aide
+Semi-synthetic test (--plant): adds DELTA SD to the observed outcome of small-class
+students in the group, so the right policy is known. SYNTHETIC: not a STAR result.
 Stage 2 (trees + evaluation) is opt_trees.jl, run with the IAI Julia system image.
 
 For each held-out school fold k:
@@ -31,14 +34,31 @@ parser.add_argument('--method', choices=['dr', 'dm', 'ipw'], default='dr')
 parser.add_argument('--model', choices=['rf', 'linear'], default='rf')
 parser.add_argument('--placebo', action='store_true',
                     help='shuffle treatment within school; OPT gains should vanish')
+parser.add_argument('--plant', type=float, default=0.0,
+                    help='semi-synthetic test: add this many SD to the outcome of '
+                         'small-class students in --plant-group')
+parser.add_argument('--plant-group', choices=['free_lunch', 'young'], default='free_lunch',
+                    help="free_lunch = free-lunch students; young = age_at_entry below the median")
 args = parser.parse_args()
-tag = f'{args.method}_{args.model}' + ('_placebo' if args.placebo else '')
+tag = (f'{args.method}_{args.model}' + ('_placebo' if args.placebo else '')
+       + (f'_plant_{args.plant_group}{args.plant:g}' if args.plant else ''))
 rng = np.random.default_rng(SEED)
 
 df = pd.read_csv(HERE / 'project_star_analysis.csv')
 if args.placebo:
     df['treatment'] = df.groupby('school_id').treatment.transform(lambda s: rng.permutation(s.values))
-X = pd.get_dummies(df[FEATURES], columns=CATEGORICAL, dtype=float)
+if args.plant:
+    group = (df.free_lunch == 1) if args.plant_group == 'free_lunch' else \
+            (df.age_at_entry < df.age_at_entry.median())
+    bump = group & (df.treatment == 'small')
+    df.loc[bump, 'outcome'] += args.plant
+    print(f'SYNTHETIC: added {args.plant} SD to {bump.sum()} small-class students '
+          f'in group {args.plant_group} ({group.sum()} students in the group)')
+# Linear model: drop one reference level per category. With every level plus an intercept
+# the design is rank-deficient and least squares returns huge, meaningless coefficients.
+# Random forests keep all levels (unchanged from the original runs).
+X = pd.get_dummies(df[FEATURES], columns=CATEGORICAL, dtype=float,
+                   drop_first=(args.model == 'linear'))
 y = df.outcome.to_numpy()
 T = df.treatment.to_numpy()
 P = df[['p_' + t for t in ARMS]].to_numpy()

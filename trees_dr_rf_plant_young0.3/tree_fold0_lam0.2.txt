@@ -1,0 +1,4 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: locale is suburban
+    2) Prescribe: regular, 1051 points, error 19.12
+    3) Prescribe: small, 3649 points, error 19.29

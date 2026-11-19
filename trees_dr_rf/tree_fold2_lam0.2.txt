@@ -1,0 +1,8 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: female < 0.5
+    2) Split: age_at_entry < 5.915
+      3) Prescribe: small, 2163 points, error 20.05
+      4) Prescribe: regular, 195 points, error 20.18
+    5) Split: locale in [inner-city,suburban] or is missing
+      6) Prescribe: small, 862 points, error 19.99
+      7) Prescribe: regular, 1340 points, error 19.77
