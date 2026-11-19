@@ -18,7 +18,7 @@ Do not presuppose that small classes are best for every student, or that the aid
 
 ## Current status (as of 2026-11-18)
 
-A first end-to-end pipeline exists (commit `07283cd`, 15 Nov 2026): data download → cleaning → cross-fitted rewards → policy trees → held-out evaluation. See `project_star_notes.txt` sections 1–9.
+A first end-to-end pipeline exists (commit `07283cd`, 15 Nov 2026): data download → cleaning → cross-fitted rewards → policy trees → held-out evaluation. See `project_star_notes.txt` sections 1–9, and sections 10–11 for the work since then.
 
 - **Runs done:**
   - Main configuration: DR rewards with random-forest outcome models (`rewards_dr_rf.csv`, `results_dr_rf.csv`, trees in `trees_dr_rf/`).
@@ -56,11 +56,11 @@ Details and counts are in `project_star_notes.txt` sections 2–6.
 
 ## Task list
 
-Not split by person. Status as of 2026-11-18.
+Not split by person. Status as of 2026-11-18. When you start a task, add "(in progress: Adi)" or "(in progress: Daniel)" to it and push, so you don't both start the same one.
 
 **Done:**
 1. Data preparation and cleaning.
-2. Counterfactual rewards: DR with random forests. DM, IPW and linear models are coded but not run.
+2. Counterfactual rewards: DR with random forests (main). DM and linear models were run for task 8; IPW is coded but not run.
 3. Unconstrained OPT (IAI, depth 1–3).
 4. Baselines: all-regular, all-small, all-aide, random, free-lunch-first, with gaps (see Baselines below).
 5. Held-out DR evaluation for the DR-RF configuration.
@@ -68,8 +68,10 @@ Not split by person. Status as of 2026-11-18.
 8. Semi-synthetic check (2026-11-18): planted effects of +0.3 SD are found in 5 of 5 folds, +0.2 SD in 3 of 5, +0.1 SD in 1 of 5. Trees were also trained on DM-RF, DR-linear and DM-linear rewards (part of task 15), and a bug in the linear-model rewards was fixed. Details in notes section 11.
 
 **To do (rough priority order):**
-7. Placebo check: run the trees on placebo rewards. OPT's gain over random should be about zero. Now mainly a yardstick for noise (how far apart policies land by chance), so consider several shuffles.
-9. Budget frontier with a fixed share of small places instead of the λ sweep (the λ sweep does not control the budget smoothly).
+7. Placebo check: run the trees on placebo rewards. OPT's gain over random should be about zero. Now mainly a yardstick for noise (how far apart policies land by chance), so run several shuffles. Two details:
+   - `opt_rewards.py` needs a `--seed` option for the shuffle; it is currently fixed at `SEED = 15`.
+   - The existing `rewards_dr_linear_placebo.csv` uses linear models. A DR-RF placebo (`--placebo` with the default `--model rf`) matches the main run.
+9. Budget frontier with a fixed share of small places instead of the λ sweep (the λ sweep does not control the budget smoothly). Method from notes section 9: rank students by their tree leaf's estimated gain (`G_small − G_regular`) and give small places to a set share, e.g. 0–100% in steps. Compare with random and free-lunch-first at the same share.
 10. Per-school capacity constraints (main extension). See Capacity constraints.
 11. Subgroup-level allocation baseline (staff feedback).
 12. Fix the baseline gaps: aide seats in the heuristic, per-school matching.
