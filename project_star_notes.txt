@@ -2,6 +2,8 @@ PROJECT STAR - DATASET CLEANING AND OPT PLAN
 Optimizing Classroom Resource Allocation Using Optimal Policy Trees
 (Daniel Krupp, Adi Palaniappan)
 Notes compiled 2026-11-11
+Updated 2026-11-18: staff feedback, decoded trees, code gaps, Mac setup (section 10).
+The shared task list is in CLAUDE.md.
 
 ==========================================================================================
 1. FILES
@@ -177,6 +179,7 @@ IAI setup on this machine
   installed. Because the system image preloads IAI, Julia code calls it as `IAI.` and
   does not need a `using IAI` line. A single OptimalTreePolicyMaximizer fit needs a cp
   value; GridSearch tunes cp automatically.
+  (The setup on Adi's Mac is different; see section 10d.)
 
 Step 1 - Rewards (opt_rewards.py, Python/scikit-learn)
   python opt_rewards.py [--method dr|dm|ipw] [--model rf|linear] [--placebo]
@@ -265,6 +268,11 @@ Making sure the results are real
  12. Robustness: --cohort all; the grade-3 outcome (needs weighting for students who
      left); reading and math separately.
 
+Requested by the teaching staff
+ 13. Subgroup-level allocation: give each combination of features its best class type
+     (with a small linear program for capacities) and compare it with OPT on held-out
+     schools. See section 10a.
+
 Suggested order: 1, 9, 10 first. Together they show early whether there is real
 heterogeneity for OPT to exploit.
 
@@ -295,6 +303,7 @@ What this shows
     jumps around between folds and is not monotone in lambda. For a clean budget
     frontier, fix the number of small places directly (for example, rank students by
     their leaf's estimated gain and fill a set share) instead of sweeping lambda.
+  - The fold-0 trees are written out in section 10b.
 
 Next steps this points to
   - Run the placebo (experiment 9) and the semi-synthetic test (experiment 10), to confirm
@@ -303,3 +312,96 @@ Next steps this points to
     larger gains for disadvantaged students over time), reading vs math, and the all-
     entrants cohort.
   - Run with --model linear and --method dm, which give less noisy rewards (experiment 4).
+
+==========================================================================================
+10. UPDATES 2026-11-18 (Adi)
+==========================================================================================
+
+a) Teaching staff feedback on the proposal (word for word)
+
+  "Very interesting idea! One thing to consider is that, if you only have a few discrete
+  pre-treatment features, students will fall into a limited number of subgroups. You
+  could compute the best class type for each subgroup directly by brute force, averaging
+  the estimated rewards within the subgroup and picking the highest (capacity limits
+  could be added as a small linear optimization problem). Given that a shallow tree won't
+  separate every subgroup, comparing your tree against this subgroup-level allocation on
+  held-out schools would show whether the tree gives up any achievement for more
+  interpretability and less risk of overfitting."
+
+  What this means in practice (experiment 13)
+    - Put every student in a group by their combination of features: gender x free lunch
+      x ethnicity x locale (2 x 2 x 4 x 4 = 64 combinations), with age_at_entry cut into
+      a few bands. Age is continuous, so it can't be used as is; the bands are still to
+      be chosen.
+    - In the training schools, average G_regular, G_small and G_aide within each group
+      and give the group the class type with the highest average.
+    - With capacities: decide how many students of each group get small / aide places
+      with a small linear program over groups instead of over students.
+    - Score it on the held-out schools exactly like OPT (equation 4).
+
+  On the training data the subgroup policy can never score below a tree built on the
+  same discrete features, because every tree leaf is a merge of groups. The real test is
+  on held-out schools. Age is the exception: the tree picks its own age cut-off.
+
+  How to read the comparison
+    subgroup ~ OPT, both beat random   the tree keeps the benefit of targeting in a
+                                       simpler form
+    subgroup > OPT > random            targeting helps; the tree gives some of it up
+    OPT > subgroup                     the 64-group table overfits small groups
+    subgroup ~ OPT ~ random            no useful targeting on these features
+
+  Caveats: "~" needs an uncertainty interval on the difference, not just similar point
+  estimates (fold spread is 0.03-0.07 SD). Under capacities both policies must use the
+  same seat-filling rule. Small groups will have noisy averages.
+
+b) What the fold-0 trees say (trees_dr_rf/, trained on folds 1-4, 4,700 students)
+
+  lambda  tree
+  0.00    no split: everyone small
+  0.05    age_at_entry >= 6.165 (130 students) -> regular; everyone else small
+  0.10    suburban schools (1,051 students) -> regular; everyone else small
+  0.15    same policy as 0.10
+  0.20    girls (2,306) -> regular; boys (2,394) -> small
+  0.30    no split: everyone regular
+
+  The split changes feature at every lambda and never uses free lunch, so these look
+  like noise rather than real differences between students. No fold-0 tree assigns aide
+  classes. The gender split needs care before it appears in a report.
+
+c) Gaps in the current code (not fixed yet)
+  - free_lunch_first never assigns aide seats. When OPT uses aide places the comparison
+    is not like for like (fold 1, lambda 0: OPT put 40% in aide, the heuristic 0%).
+  - random_same_budget and free_lunch_first are matched to OPT's shares over the whole
+    test fold, not school by school.
+  - random_same_budget is the exact expected value of random allocation. That is fine
+    for the mean, but there is no spread across random seeds to report.
+  - opt_trees.jl searches max_depth 1-3; experiment 3 says 1-4.
+  - rewards_dr_linear_placebo.csv exists, but opt_trees.jl has not been run on it, so
+    the placebo (experiment 9) is not done.
+  - There is no locked test set: every school is a test school once in the 5-fold loop.
+    Tuning inside each fold is clean, but design choices made after looking at
+    results_dr_rf.csv have seen every school.
+  - IAI finds trees by heuristic search, so there is no optimality gap to report.
+
+d) Setup on Adi's Mac (checked 2026-11-18)
+  - julia +1.11.6/IAI/3.2.2 loads IAI 3.2.2 (academic license) and fits a policy tree.
+    Its environment has CSV and DataFrames but not CategoricalArrays, which opt_trees.jl
+    needs. Install it once:
+      julia +1.11.6/IAI/3.2.2 -e 'import Pkg; Pkg.add("CategoricalArrays")'
+    There is no @iai environment, so run without --project=@iai:
+      julia +1.11.6/IAI/3.2.2 opt_trees.jl dr_rf
+    The pipeline has not been re-run on this machine yet.
+  - Gurobi (academic license, valid to 2027-08-24) and JuMP are installed for plain
+    julia +1.11.6. They can be used for the exact MIP version of the capacity
+    constraints (option c in section 6).
+  - Python: the system python3 has no pandas. Use ~/opt/anaconda3/bin/python3
+    (pandas 1.4.4, scikit-learn 1.0.2, numpy 1.21.5).
+
+e) Open decisions
+  - Capacity scenarios (for example 50/100/150% of observed seats, experiment 2).
+  - How a tree and per-school quotas combine on new schools (option b or c, section 6).
+  - Whether to hold some schools out as a locked test set, or keep 5-fold only.
+  - Depth range (code 1-3, experiment 3 says 1-4).
+  - Age bands and a minimum group size for the subgroup allocation.
+  - Whether to use a causal forest only as a check for heterogeneity. A forest-based
+    policy benchmark was dropped from scope.
