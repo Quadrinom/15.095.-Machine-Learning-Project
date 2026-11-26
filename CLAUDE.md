@@ -68,10 +68,10 @@ Not split by person. Status as of 2026-11-18. When you start a task, add "(in pr
 8. Semi-synthetic check (2026-11-18): planted effects of +0.3 SD are found in 5 of 5 folds, +0.2 SD in 3 of 5, +0.1 SD in 1 of 5. Trees were also trained on DM-RF, DR-linear and DM-linear rewards (part of task 15), and a bug in the linear-model rewards was fixed. Details in notes section 11.
 
 **To do (rough priority order):**
-7. Placebo check: run the trees on placebo rewards. OPT's gain over random should be about zero. Now mainly a yardstick for noise (how far apart policies land by chance), so run several shuffles. Two details:
+7. (in progress: Daniel) Placebo check: run the trees on placebo rewards. OPT's gain over random should be about zero. Now mainly a yardstick for noise (how far apart policies land by chance), so run several shuffles. Two details:
    - `opt_rewards.py` needs a `--seed` option for the shuffle; it is currently fixed at `SEED = 15`.
    - The existing `rewards_dr_linear_placebo.csv` uses linear models. A DR-RF placebo (`--placebo` with the default `--model rf`) matches the main run.
-9. Budget frontier with a fixed share of small places instead of the λ sweep (the λ sweep does not control the budget smoothly). Method from notes section 9: rank students by their tree leaf's estimated gain (`G_small − G_regular`) and give small places to a set share, e.g. 0–100% in steps. Compare with random and free-lunch-first at the same share.
+9. (in progress: Daniel) Budget frontier with a fixed share of small places instead of the λ sweep (the λ sweep does not control the budget smoothly). Method from notes section 9: rank students by their tree leaf's estimated gain (`G_small − G_regular`) and give small places to a set share, e.g. 0–100% in steps. Compare with random and free-lunch-first at the same share.
 10. Per-school capacity constraints (main extension). See Capacity constraints.
 11. Subgroup-level allocation baseline (staff feedback).
 12. Fix the baseline gaps: aide seats in the heuristic, per-school matching.
