@@ -76,8 +76,8 @@ Not split by person. Status as of 2026-11-26. When you start a task, add "(in pr
 9. Fixed-share budget frontier (2026-11-26, Daniel): `opt_frontier.jl`, `frontier_summary.py`, `placebo_summary.py`. OPT +0.03 to +0.05 SD over random at q = 0.3–0.4, p ≈ 0.05–0.19 against the placebos. Notes 12c–e.
 
 **To do (rough priority order):**
-14. Subgroup values (free lunch, ethnicity, gender) and a run without sensitive features. **Moved up:** every frontier tree splits on gender (notes 12f). Needs `opt_frontier.jl` to take a feature list, then a run without `female` and `ethnicity_grp`.
-10. Per-school capacity constraints (main extension). See Capacity constraints. The frontier already does option (b) with B_s = q · n_s; still to do: capacities from `project_star_school_capacity.csv`, aide seats, and possibly the exact MIP (option c).
+14. (in progress: Daniel) Subgroup values (free lunch, ethnicity, gender) and a run without sensitive features. **Moved up:** every frontier tree splits on gender (notes 12f). Needs `opt_frontier.jl` to take a feature list, then a run without `female` and `ethnicity_grp`.
+10. (in progress: Daniel) Per-school capacity constraints (main extension). See Capacity constraints. The frontier already does option (b) with B_s = q · n_s; still to do: capacities from `project_star_school_capacity.csv`, aide seats, and possibly the exact MIP (option c).
 11. Subgroup-level allocation baseline (staff feedback). Can reuse the frontier's per-school seat filling.
 12. Fix the baseline gaps: aide seats in the heuristic. (Per-school matching is done in the frontier, not in the λ sweep.)
 13. Uncertainty: school-level bootstrap for policy values and for differences between policies. Done for the frontier (`frontier_summary.py`, trees held fixed); not for the λ sweep. A bootstrap that refits trees is not done.
