@@ -1,0 +1,7 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: locale in [inner-city,urban] or is missing
+    2) Prescribe: regular, 1718 points, error 24.23
+    3) Prescribe: small, 2881 points, error 23.92
+cost lambda = mean training gain = 0.0209
+leaf 2: n_train = 1718, mean training gain = -0.0289
+leaf 3: n_train = 2881, mean training gain = 0.0507

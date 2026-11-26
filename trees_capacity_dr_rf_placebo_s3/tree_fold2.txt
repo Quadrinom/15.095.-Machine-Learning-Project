@@ -1,0 +1,10 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: age_at_entry < 5.415
+    2) Split: ethnicity_grp is black or is missing
+      3) Prescribe: regular, 658 points, error 20.68
+      4) Prescribe: aide, 1670 points, error 20.28
+    5) Prescribe: small, 2232 points, error 20.21
+cost lambda: small = -0.0205, aide = -0.0098 (mean training gains over regular)
+leaf 3: n_train = 658, mean training gain small = -0.1645, aide = -0.1555
+leaf 4: n_train = 1670, mean training gain small = -0.0315, aide = 0.0885
+leaf 5: n_train = 2232, mean training gain small = 0.0303, aide = -0.0403

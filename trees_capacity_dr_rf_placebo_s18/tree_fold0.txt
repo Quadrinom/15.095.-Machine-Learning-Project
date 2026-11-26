@@ -1,0 +1,7 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: age_at_entry < 5.415
+    2) Prescribe: aide, 2402 points, error 14.11
+    3) Prescribe: small, 2298 points, error 13.85
+cost lambda: small = -0.0221, aide = 0.0003 (mean training gains over regular)
+leaf 2: n_train = 2402, mean training gain small = -0.0537, aide = 0.0424
+leaf 3: n_train = 2298, mean training gain small = 0.0109, aide = -0.0436

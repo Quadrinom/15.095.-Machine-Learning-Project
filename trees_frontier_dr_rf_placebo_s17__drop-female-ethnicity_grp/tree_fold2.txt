@@ -1,0 +1,19 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: free_lunch < 0.5
+    2) Split: locale is suburban
+      3) Prescribe: small, 664 points, error 24.81
+      4) Split: age_at_entry < 5.415
+        5) Prescribe: regular, 858 points, error 25.01
+        6) Prescribe: small, 908 points, error 24.8
+    7) Split: age_at_entry < 5.415
+      8) Split: age_at_entry < 5.165
+        9) Prescribe: regular, 578 points, error 25.66
+        10) Prescribe: small, 535 points, error 25.38
+      11) Prescribe: regular, 1017 points, error 25.35
+cost lambda = mean training gain = 0.0167
+leaf 3: n_train = 664, mean training gain = 0.296
+leaf 5: n_train = 858, mean training gain = -0.1222
+leaf 6: n_train = 908, mean training gain = 0.061
+leaf 9: n_train = 578, mean training gain = -0.0509
+leaf 10: n_train = 535, mean training gain = 0.1269
+leaf 11: n_train = 1017, mean training gain = -0.1074

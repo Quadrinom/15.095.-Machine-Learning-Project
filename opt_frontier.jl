@@ -1,12 +1,21 @@
 # Budget frontier with a fixed share of small places (task 9), filled school by school.
 #
-# Run:    julia +1.11.6/IAI/3.2.2 --project=@iai opt_frontier.jl [tag] [eval_tag]
+# Run:    julia +1.11.6/IAI/3.2.2 --project=@iai opt_frontier.jl [tag] [eval_tag] [--drop=f1,f2]
 #         tag (default dr_rf): rewards the tree is trained on
 #         eval_tag (default = tag): rewards used to score the held-out schools
+#         --drop: features the tree may not use (task 14, e.g. --drop=female,ethnicity_grp);
+#                 adds __drop-f1-f2 to every output name
 # Input:  project_star_analysis.csv, rewards_<tag>.csv [, rewards_<eval_tag>.csv]
 # Output: frontier_<tag>[__eval_<eval_tag>].csv   one row per held-out school x share q x
 #                                                 policy: n, n_small, sum of rewards
 #         trees_frontier_<tag>/tree_fold<k>.txt   each fold's tree and its leaf gains
+#         frontier_ranks_<name>.csv               one row per held-out student: leaf, leaf
+#                                                 gain, priority rank within the school for
+#                                                 OPT and free-lunch-first (1 = first), test
+#                                                 rewards. Student i is small at share q iff
+#                                                 rank <= n_small of its school at q.
+#         (<name> = the frontier file name without frontier_ and .csv)
+# Subgroup values, runs without sensitive features: python subgroup_summary.py
 # Summary and school-level bootstrap intervals: python frontier_summary.py <file>
 #
 # Per held-out fold k:
@@ -24,12 +33,22 @@
 using CSV, DataFrames, CategoricalArrays, Random, Statistics
 
 const HERE = @__DIR__
-const FEATURES = [:female, :age_at_entry, :free_lunch, :ethnicity_grp, :locale,
-                  :age_at_entry_missing, :free_lunch_missing]
+const ALL_FEATURES = [:female, :age_at_entry, :free_lunch, :ethnicity_grp, :locale,
+                      :age_at_entry_missing, :free_lunch_missing]
 const SHARES = 0.0:0.1:1.0
 const SEED = 15
-tag = isempty(ARGS) ? "dr_rf" : ARGS[1]
-eval_tag = length(ARGS) >= 2 ? ARGS[2] : tag
+drop_args = filter(a -> startswith(a, "--drop="), ARGS)
+pos = filter(a -> !startswith(a, "--"), ARGS)
+@assert length(drop_args) + length(pos) == length(ARGS) "unknown option in $(ARGS)"
+tag = isempty(pos) ? "dr_rf" : pos[1]
+eval_tag = length(pos) >= 2 ? pos[2] : tag
+drop = isempty(drop_args) ? Symbol[] :
+       Symbol.(split(split(drop_args[end], "=")[2], ","))
+@assert all(in(ALL_FEATURES), drop) "unknown feature in --drop: $(drop)"
+const FEATURES = setdiff(ALL_FEATURES, drop)
+suffix = isempty(drop) ? "" : "__drop-" * join(string.(drop), "-")
+name = (eval_tag == tag ? tag : "$(tag)__eval_$(eval_tag)") * suffix
+println("features: ", join(string.(FEATURES), ", "))
 
 df = CSV.read(joinpath(HERE, "project_star_analysis.csv"), DataFrame)
 for c in (:ethnicity_grp, :locale)
@@ -37,13 +56,14 @@ for c in (:ethnicity_grp, :locale)
 end
 rw = CSV.read(joinpath(HERE, "rewards_$tag.csv"), DataFrame)
 rw_eval = eval_tag == tag ? rw : CSV.read(joinpath(HERE, "rewards_$eval_tag.csv"), DataFrame)
-treedir = mkpath(joinpath(HERE, "trees_frontier_$tag"))
+treedir = mkpath(joinpath(HERE, "trees_frontier_$tag$suffix"))
 rng = MersenneTwister(SEED)
 
 # Students of one school in priority order (higher key first, random tie-break)
 priority(key, tiebreak) = sortperm(collect(zip(-key, tiebreak)))
 
 results = []
+ranks = []
 for k in sort(unique(rw.test_fold))
     sub = rw[rw.test_fold .== k, :]
     tr = innerjoin(sub[sub.role .== "train", :], df, on=:student_id)
@@ -61,7 +81,8 @@ for k in sort(unique(rw.test_fold))
 
     leaf_tr = IAI.apply(lnr, tr[:, FEATURES])
     leaf_gain = Dict(l => mean(gain_tr[leaf_tr .== l]) for l in unique(leaf_tr))
-    score = [leaf_gain[l] for l in IAI.apply(lnr, te[:, FEATURES])]
+    leaf_te = IAI.apply(lnr, te[:, FEATURES])
+    score = [leaf_gain[l] for l in leaf_te]
     open(joinpath(treedir, "tree_fold$(k).txt"), "w") do io
         println(io, lnr)
         println(io, "cost lambda = mean training gain = ", round(lam, digits=4))
@@ -78,6 +99,14 @@ for k in sort(unique(rw.test_fold))
         Gr, Gs = te.G_regular[idx], te.G_small[idx]
         order = Dict("opt" => priority(score[idx], tiebreak[idx]),
                      "free_lunch_first" => priority(te.free_lunch[idx], tiebreak[idx]))
+        rank_of(ord) = invperm(ord)
+        r_opt, r_fl = rank_of(order["opt"]), rank_of(order["free_lunch_first"])
+        for (j, i) in enumerate(idx)
+            push!(ranks, (fold=k, school_id=s, student_id=te.student_id[i],
+                          leaf=leaf_te[i], score=score[i], rank_opt=r_opt[j], rank_fl=r_fl[j],
+                          G_regular=te.G_regular[i], G_small=te.G_small[i],
+                          G_aide=te.G_aide[i]))
+        end
         for q in SHARES
             n_small = round(Int, q * n)
             for (policy, ord) in order
@@ -95,6 +124,7 @@ for k in sort(unique(rw.test_fold))
 end
 
 res = DataFrame(results)
-out = eval_tag == tag ? "frontier_$tag.csv" : "frontier_$(tag)__eval_$(eval_tag).csv"
+out = "frontier_$name.csv"
 CSV.write(joinpath(HERE, out), res)
-println("Wrote $out ($(nrow(res)) rows)")
+CSV.write(joinpath(HERE, "frontier_ranks_$name.csv"), DataFrame(ranks))
+println("Wrote $out ($(nrow(res)) rows) and frontier_ranks_$name.csv")

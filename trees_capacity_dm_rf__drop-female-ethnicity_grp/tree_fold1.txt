@@ -1,0 +1,22 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: age_at_entry < 5.665
+    2) Split: locale in [inner-city,suburban,urban] or is missing
+      3) Split: age_at_entry < 5.165
+        4) Prescribe: regular, 656 points, error 1.046
+        5) Prescribe: aide, 1118 points, error 0.7894
+      6) Prescribe: small, 1698 points, error 0.8982
+    7) Split: free_lunch < 0.5
+      8) Split: locale in [inner-city,rural,urban] or is missing
+        9) Prescribe: aide, 433 points, error 0.3781
+        10) Prescribe: regular, 189 points, error 0.3836
+      11) Split: locale is inner-city or is missing
+        12) Prescribe: aide, 129 points, error 1.002
+        13) Prescribe: regular, 373 points, error 1.04
+cost lambda: small = 0.1666, aide = 0.0743 (mean training gains over regular)
+leaf 4: n_train = 656, mean training gain small = 0.121, aide = -0.0428
+leaf 5: n_train = 1118, mean training gain small = 0.1262, aide = 0.1572
+leaf 6: n_train = 1698, mean training gain small = 0.2338, aide = 0.0697
+leaf 9: n_train = 433, mean training gain small = 0.1786, aide = 0.2028
+leaf 10: n_train = 189, mean training gain small = 0.1342, aide = 0.0076
+leaf 12: n_train = 129, mean training gain small = 0.1662, aide = 0.2061
+leaf 13: n_train = 373, mean training gain small = 0.0644, aide = -0.1076

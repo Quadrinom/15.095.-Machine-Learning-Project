@@ -1,0 +1,7 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: free_lunch < 0.5
+    2) Prescribe: small, 2565 points, error 13.32
+    3) Prescribe: regular, 2031 points, error 13.83
+cost lambda = mean training gain = 0.0031
+leaf 2: n_train = 2565, mean training gain = 0.0661
+leaf 3: n_train = 2031, mean training gain = -0.0764
