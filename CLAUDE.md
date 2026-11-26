@@ -85,12 +85,12 @@ Not split by person. Status as of 2026-11-26. When you start a task, add "(in pr
 
 **To do (rough priority order):**
 19. Exact MIP for capacities (option c): a depth-2 tree with equation 3 inside the fit (Gurobi + JuMP on Adi's Mac). Compare with `opt_capacity.jl` at the same scales. Optional: allocating seats *between* schools, where locale could matter.
-11. Subgroup-level allocation baseline (staff feedback). Can reuse the per-school seat filling of `opt_frontier.jl` / `opt_capacity.jl` (rank students by their group's mean training gain). Run it with and without the sensitive features.
+11. (in progress: Daniel) Subgroup-level allocation baseline (staff feedback). Can reuse the per-school seat filling of `opt_frontier.jl` / `opt_capacity.jl` (rank students by their group's mean training gain). Run it with and without the sensitive features.
 12. Fix the baseline gaps in the λ sweep (`opt_trees.jl`): aide seats in the heuristic, per-school matching. Both are done in `opt_capacity.jl`; only needed if the λ sweep stays in the report.
 13. Uncertainty: school-level bootstrap for policy values and for differences between policies. Done for the frontier, capacities and subgroups (`frontier_summary.py`, `capacity_summary.py`, `subgroup_summary.py`; trees held fixed); not for the λ sweep. A bootstrap that refits trees is not done.
 18. Like-for-like placebos for the DM and linear runs (the current null uses DR-RF placebo trees), and capacity placebos without sensitive features. Placebo means are slightly positive at q = 0.6–0.9 (about +0.01); not investigated.
 15. Robustness: propensity choice, depth, tree stability, other outcomes and cohort. (DM vs DR and linear vs RF are done for the λ sweep; see task 8.)
-16. EDA figures and data summary table.
+16. (in progress: Daniel) EDA figures and data summary table.
 17. Report and presentation.
 
 ## Method specification
