@@ -5,6 +5,8 @@ Notes compiled 2026-11-11
 Updated 2026-11-18: staff feedback, decoded trees, code gaps, Mac setup, reproduction
 check (section 10); semi-synthetic test, DM/linear runs, linear-model bug fix
 (section 11).
+Updated 2026-11-26: placebo runs (task 7), fixed-share budget frontier (task 9),
+small-class gain by gender (section 12).
 The shared task list is in CLAUDE.md.
 
 ==========================================================================================
@@ -500,3 +502,135 @@ f) New files
     trees_dr_rf_plant_*/
   trees_dr_rf/tree_fold<k>_lam<lam>.txt: text trees for all folds of the original run
   summarize_runs.py
+
+==========================================================================================
+12. PLACEBO, FIXED-SHARE BUDGET FRONTIER, AND GENDER (2026-11-26, Daniel; tasks 7 and 9)
+==========================================================================================
+
+a) Code changes. Default behaviour is unchanged.
+  - opt_rewards.py --seed N: seed for the placebo shuffle only. Outcome models still use
+    SEED = 15, so placebo runs differ only in the shuffle. The default seed keeps the old
+    file name (rewards_<tag>_placebo.csv); other seeds add _s<N>.
+  - Correction to 11a: rewards_dr_linear_placebo.csv WAS affected by the linear-model bug.
+    Regenerating it with the default seed changed 5 of 28,760 rows (by up to 0.83); every
+    other row differs by about 1e-15. The committed file is now the regenerated one.
+  - opt_frontier.jl: fixed-share budget frontier (method in c).
+  - frontier_summary.py: frontier table with school-level bootstrap intervals.
+  - placebo_summary.py: real frontier vs the placebo null, with p-values.
+  - summarize_runs.py: also lists the placebo lambda-sweep runs.
+
+b) Placebo, lambda sweep (task 7 as written)
+  Six runs: DR-linear (seed 15) and DR-RF (seeds 15, 1-4), class types shuffled within
+  schools, trees and evaluation exactly as in the main run (results_*placebo*.csv).
+  - OPT - random ranges from -0.032 to +0.015 SD, centred on 0. The real lambda sweep
+    (-0.018 to +0.008) looks the same, so the lambda sweep finds nothing beyond noise.
+  - Placebo trees split on locale, age and free lunch in many folds, like the real
+    lambda-sweep trees.
+  - The lambda sweep is a weak check here: a placebo has no average small-class effect,
+    so at lambda >= 0.1 most placebo trees put everyone in regular classes. The frontier
+    placebo (e) is the useful yardstick.
+
+c) Fixed-share frontier: method (opt_frontier.jl)
+  For each held-out fold:
+    1. Fit one OPT on training rewards for regular vs small only (GridSearch max_depth
+       1-3, minbucket 50). Aide is left out: its estimated effect is about 0, and the
+       frontier is about small seats.
+    2. Lower the small reward by the MEAN training gain (G_small - G_regular). With no
+       cost the tree usually doesn't split; with this cost every split has to separate
+       students who gain more than average from those who gain less.
+    3. Leaf gain = mean training gain in the leaf.
+    4. For each share q = 0, 0.1, ..., 1 and each held-out SCHOOL s, give small places
+       to round(q * n_s) students, highest leaf gain first (random tie-break); everyone
+       else is regular.
+  Random and free-lunch-first get exactly the same seat count in every school, which
+  fixes the "matched over the whole fold, not per school" gap in 10c. Random is scored
+  by its exact expected value. This is option (b) of section 6 with capacity
+  B_s = q * n_s.
+  Intervals (frontier_summary.py) resample whole schools, 2000 times. They hold the
+  trees fixed, so they cover evaluation noise but not variation from refitting trees.
+  The placebo (e) covers the whole pipeline.
+
+  Smoke test (SYNTHETIC, +0.3 SD planted for free-lunch students): the tree splits on
+  free lunch in 5 of 5 folds, with leaf gains 0.20 vs 0.51 in fold 0 (the planted 0.3
+  difference). OPT beats random at q = 0.2-0.4 with intervals excluding 0, and ties
+  free-lunch-first, which is the ideal rule in that test. At q = 0 and q = 1 all three
+  policies are identical, as they must be.
+
+d) Fixed-share frontier: real data (DR-RF trees, held-out DR-RF rewards, all 78 schools)
+
+   q    OPT     random  FL-first  OPT-random  95% CI            OPT-FL  95% CI
+   0.0  -0.014  -0.014  -0.014     0.000                         0.000
+   0.1   0.018   0.008  -0.003    +0.010     [-0.010, +0.029]  +0.021  [-0.000, +0.043]
+   0.2   0.046   0.029   0.023    +0.017     [-0.005, +0.040]  +0.023  [-0.002, +0.051]
+   0.3   0.082   0.050   0.044    +0.032     [+0.004, +0.062]  +0.039  [+0.001, +0.079]
+   0.4   0.103   0.072   0.065    +0.032     [+0.001, +0.065]  +0.038  [-0.010, +0.089]
+   0.5   0.114   0.094   0.080    +0.021     [-0.007, +0.049]  +0.034  [-0.010, +0.081]
+   0.6   0.134   0.114   0.100    +0.019     [-0.006, +0.047]  +0.034  [-0.005, +0.076]
+   0.7   0.149   0.135   0.110    +0.014     [-0.008, +0.036]  +0.039  [+0.009, +0.071]
+   0.8   0.162   0.157   0.152    +0.004     [-0.017, +0.028]  +0.010  [-0.016, +0.038]
+   0.9   0.186   0.178   0.174    +0.007     [-0.008, +0.024]  +0.011  [-0.008, +0.032]
+   1.0   0.200   0.200   0.200     0.000                         0.000
+
+  Trees trained on other rewards, all scored with DR-RF test rewards (best share):
+    DM-RF      +0.028 at q = 0.4
+    DR-linear  +0.049 at q = 0.4  (interval excludes 0 at q = 0.2-0.6)
+    DM-linear  +0.048 at q = 0.4  (interval excludes 0 at q = 0.3-0.6)
+  Free-lunch-first is slightly below random at every share (-0.004 to -0.025), although
+  the held-out small-class gain is the same with and without free lunch (0.215 vs
+  0.212). Within noise.
+
+e) Fixed-share frontier: placebo null (20 DR-RF placebo shuffles: seeds 1-20)
+  OPT - random by chance, per share (q = 0.1-0.9): mean -0.004 to +0.010, sd
+  0.007-0.018, 95th percentile 0.013-0.032. Placebo means are slightly positive at
+  q = 0.6-0.9 (about +0.01); not investigated. The best share of each placebo: mean 0.019, 95th percentile
+  0.032, max 0.047 (seed 20).
+
+   real run    best share  OPT-random  p (best share vs placebo best shares)
+   DR-RF       q = 0.3     +0.032      0.095
+   DM-RF       q = 0.4     +0.028      0.19
+   DR-linear   q = 0.4     +0.049      0.048
+   DM-linear   q = 0.4     +0.048      0.048
+
+  p = (1 + #placebos at or above) / 21, so 0.048 is the smallest possible. Adding the
+  20th shuffle moved the DR-RF p-value from 0.05 to 0.095, so these p-values are rough.
+  The placebo trees were trained on DR-RF placebo rewards; a like-for-like null for the
+  DM and linear runs would need placebos with those rewards (not run).
+
+f) Small-class gain by gender (new)
+
+                                         boys    girls   gap
+   held-out DR gain (G_small - G_reg)    0.306   0.117   +0.189  [+0.074, +0.308]
+   raw difference in means               0.284   0.073   +0.21
+   regression with school fixed effects  0.272   0.138   +0.135
+  (interval: school-level bootstrap, 1000 draws)
+
+  Every frontier tree splits on gender: 5 of 5 folds for each of the four reward types,
+  always with boys in the higher-gain leaf. Placebo frontier trees split on gender in
+  29 of 100 folds, and no placebo did so in all 5.
+  Correction to 11b and CLAUDE.md: the gender splits in the semi-synthetic runs were
+  called "pure noise". The planted effect is added on top of the real data, which has
+  this gender gap, so those splits most likely reflect it.
+  Before reporting: a policy that gives small classes to boys first raises an obvious
+  fairness problem. Task 14 (run without gender and ethnicity) now matters. Don't cite
+  the literature on gender differences without checking it.
+
+g) What this means
+  - A fixed share filled school by school is the right way to draw the budget curve: it
+    controls the budget exactly and uses the same seats for every policy.
+  - The data do show one difference between students: boys gain more from small classes
+    than girls in kindergarten (about +0.14 to +0.21 SD). The trees find it every time.
+  - Targeting on it is worth little: about +0.03 to +0.05 SD over random at 30-50% small
+    places, which is at the edge of what the placebo produces by chance (p 0.05-0.19).
+  - Revised working conclusion: how many small seats there are still matters far more
+    than who gets them. The trees do pick up a real gender difference, but the value of
+    targeting on it is barely distinguishable from chance on held-out schools.
+
+h) New files
+  opt_frontier.jl, frontier_summary.py, placebo_summary.py
+  frontier_dr_rf.csv, frontier_dm_rf__eval_dr_rf.csv, frontier_dr_linear__eval_dr_rf.csv,
+    frontier_dm_linear__eval_dr_rf.csv, and trees_frontier_<tag>/ for each
+  Placebo: frontier_dr_rf_placebo[_s<N>].csv and trees_frontier_dr_rf_placebo*/ (20),
+    results_dr_rf_placebo[_s1-_s4].csv, results_dr_linear_placebo.csv, trees_*placebo*/
+  SYNTHETIC: frontier_dr_rf_plant_free_lunch0.3.csv, trees_frontier_dr_rf_plant_free_lunch0.3/
+  rewards_dr_rf_placebo*.csv (20 files, 44 MB) can be rebuilt exactly with
+    python opt_rewards.py --placebo --seed N

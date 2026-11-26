@@ -1,0 +1,13 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: free_lunch < 0.5
+    2) Split: female < 0.5
+      3) Prescribe: small, 1193 points, error 16.87
+      4) Prescribe: regular, 1088 points, error 16.67
+    5) Split: ethnicity_grp is black or is missing
+      6) Prescribe: small, 1304 points, error 17.37
+      7) Prescribe: regular, 968 points, error 17.23
+cost lambda = mean training gain = 0.2165
+leaf 3: n_train = 1193, mean training gain = 0.3848
+leaf 4: n_train = 1088, mean training gain = 0.0414
+leaf 6: n_train = 1304, mean training gain = 0.2878
+leaf 7: n_train = 968, mean training gain = 0.11

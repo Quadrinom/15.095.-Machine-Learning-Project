@@ -1,0 +1,7 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: ethnicity_grp is black or is missing
+    2) Prescribe: small, 1606 points, error 14.64
+    3) Prescribe: regular, 2947 points, error 14.3
+cost lambda = mean training gain = 0.0166
+leaf 2: n_train = 1606, mean training gain = 0.0859
+leaf 3: n_train = 2947, mean training gain = -0.0211

@@ -4,7 +4,7 @@
 
 Context for Claude Code on an MIT 15.095 (*Machine Learning Under a Modern Optimization Lens*) final project by **Daniel Krupp** and **Adi Palaniappan**. Either of them may be the user in a session. This file holds the plan, the decisions already made, the current status, the task list and the open questions. Detailed implementation notes and results are in `project_star_notes.txt`; read it before changing code.
 
-Inspect the actual files before modifying anything. Never present an assumption as an observed fact. Last updated **2026-11-18**.
+Inspect the actual files before modifying anything. Never present an assumption as an observed fact. Last updated **2026-11-26**.
 
 ## Project in one paragraph
 
@@ -16,25 +16,29 @@ We learn an **interpretable, resource-constrained policy** that assigns elementa
 
 Do not presuppose that small classes are best for every student, or that the aide arm is useful. "Targeting does not beat random allocation" is a valid finding if the data show it.
 
-## Current status (as of 2026-11-18)
+## Current status (as of 2026-11-26)
 
-A first end-to-end pipeline exists (commit `07283cd`, 15 Nov 2026): data download → cleaning → cross-fitted rewards → policy trees → held-out evaluation. See `project_star_notes.txt` sections 1–9, and sections 10–11 for the work since then.
+A first end-to-end pipeline exists (commit `07283cd`, 15 Nov 2026): data download → cleaning → cross-fitted rewards → policy trees → held-out evaluation. See `project_star_notes.txt` sections 1–9, sections 10–11 for the work of 18 Nov, and section 12 for the placebo, the fixed-share frontier and the gender finding (26 Nov).
 
 - **Runs done:**
   - Main configuration: DR rewards with random-forest outcome models (`rewards_dr_rf.csv`, `results_dr_rf.csv`, trees in `trees_dr_rf/`).
   - Trees trained on DM-RF, DR-linear and DM-linear rewards, each scored with the DR-RF test rewards (`results_<tag>__eval_dr_rf.csv`).
   - Semi-synthetic runs (file names contain `_plant_`; SYNTHETIC).
-  - Placebo rewards (`rewards_dr_linear_placebo.csv`) exist, but the tree stage has not been run on them.
-- **Main result** (held-out DR value in SD units, mean over 5 folds): OPT does **not** beat random allocation or free-lunch-first at any cost level. Differences range from −0.02 to +0.01 SD, while results vary by 0.03–0.07 SD between folds. All-small 0.199, all-aide −0.002, all-regular −0.016.
+  - Placebo λ sweeps: DR-linear (seed 15) and DR-RF (seeds 15, 1–4) (`results_*placebo*.csv`).
+  - Fixed-share budget frontier (`opt_frontier.jl`): DR-RF, DM-RF, DR-linear, DM-linear (`frontier_*.csv`, `trees_frontier_*/`), plus 20 DR-RF placebo shuffles (`frontier_dr_rf_placebo*.csv`) and one SYNTHETIC smoke test.
+- **Fixed-share frontier (notes section 12).** Each held-out school gives small places to a set share q of its students; OPT ranks students by its leaf's estimated gain, and random and free-lunch-first get the same seat count in every school. OPT beats random by +0.03 SD (DR-RF) to +0.05 SD (DR/DM-linear) at q = 0.3–0.4. Against 20 placebo shuffles that is p ≈ 0.05–0.19: at the edge of chance.
+- **Boys gain more from small classes than girls** (notes 12f). Held-out DR gain: boys 0.306, girls 0.117 (gap +0.19, school-bootstrap 95% CI [+0.07, +0.31]); raw means and a school-fixed-effects regression agree (+0.21, +0.135). Every frontier tree splits on gender (5/5 folds for all four reward types), against 29 of 100 placebo folds. A policy that targets small classes by gender raises a fairness problem: see task 14.
+- **Main result, λ sweep** (held-out DR value in SD units, mean over 5 folds): OPT does **not** beat random allocation or free-lunch-first at any cost level. Differences range from −0.02 to +0.01 SD, while results vary by 0.03–0.07 SD between folds. All-small 0.199, all-aide −0.002, all-regular −0.016.
 - **Less noisy rewards don't change this.** Trees trained on DM or linear rewards beat random by at most +0.01 to +0.04 SD, at a single cost level and within fold noise. DM-trained trees send 5–15% of students to aide classes, which loses value. Notes section 11.
 - **The method can find real differences (semi-synthetic test, SYNTHETIC).** With an extra +0.3 SD small-class benefit planted for free-lunch students, the trees split on free lunch in 5 of 5 folds and beat random by +0.07 ± 0.02 SD at λ=0.3. At +0.2 SD the effect is found in 3 of 5 folds; at +0.1 SD, in 1 of 5. In the real data the small-class gain differs by only 0.004 SD between free-lunch and other students (0.181 vs 0.177), far below that threshold. Notes section 11.
 - **The real trees look like noise.** The split feature changes with the cost level and between folds.
   - Fold 0: age ≥ 6.165 → regular at λ=0.05; suburban → regular at λ=0.1 and 0.15; girls → regular, boys → small at λ=0.2. No fold-0 tree uses free lunch.
   - Across all five folds, free lunch appears only at λ=0.3, in 2 of 5.
-  - Even with a strong planted effect the trees add spurious gender splits (4 of 5 folds), so gender splits in the real trees are likely noise.
+  - Even with a strong planted effect the trees also split on gender (4 of 5 folds). This was first read as noise, but the planted runs sit on top of the real data, which has a real gender gap (notes 12f), so these splits most likely reflect it.
+  - The λ-sweep placebos look the same as the real λ sweep (OPT − random −0.032 to +0.015), so the λ sweep finds nothing beyond noise.
 - **Our own kindergarten data:** small classes +0.18 SD, aides +0.01 SD. The small-class gain is the same with and without free lunch.
-- **Working conclusion so far:** in kindergarten, *who* gets the small-class seats barely matters; *how many* seats there are is what counts. Still to be tested with a fixed-share budget curve and per-school capacities.
-- **Per-school capacity constraints (the main extension) are not implemented.** Only a global cost penalty exists.
+- **Working conclusion so far:** in kindergarten, *how many* small seats there are matters far more than *who* gets them. The trees do find one real difference (gender), but targeting on it is worth only about +0.03 to +0.05 SD over random, barely distinguishable from chance.
+- **Per-school capacity constraints (the main extension):** the frontier implements option (b) with proportional capacities B_s = q · n_s. Capacities taken from `project_star_school_capacity.csv` (e.g. 50/100/150% of observed seats), aide seats and the exact MIP (option c) are not done.
 - **The teaching staff asked for a subgroup-level allocation comparison** (see below). Not started.
 
 ## Decisions made
@@ -50,13 +54,15 @@ Details and counts are in `project_star_notes.txt` sections 2–6.
 | Features | `female`, `age_at_entry`, `free_lunch`, `ethnicity_grp` (white/black/other/unknown), `locale` (rural/suburban/urban/inner-city), plus `*_missing` flags. Teacher variables are excluded (they depend on the assigned class) |
 | Propensities | Each class type's share within school × entry grade (`p_regular`, `p_small`, `p_aide`). Minimum 0.161, no clipping |
 | Splits | 5 folds of whole schools (`school_fold`, seed 15). Training rewards are cross-fitted within training schools; test rewards use outcome models fit on all training schools |
-| Rewards code | `opt_rewards.py` (Python, scikit-learn). Options: `--method` dr / dm / ipw, `--model` rf / linear, `--placebo`, and `--plant DELTA --plant-group` free_lunch / young (semi-synthetic). The linear model drops one reference level per category |
+| Rewards code | `opt_rewards.py` (Python, scikit-learn). Options: `--method` dr / dm / ipw, `--model` rf / linear, `--placebo [--seed N]`, and `--plant DELTA --plant-group` free_lunch / young (semi-synthetic). The linear model drops one reference level per category |
 | Trees code | `opt_trees.jl <tag> [eval_tag]` (Julia + IAI 3.2.2 `OptimalTreePolicyMaximizer`): GridSearch over `max_depth` 1–3, `minbucket` 50. The optional `eval_tag` picks the rewards that score held-out schools. Every fold's tree is saved as text |
-| Budget (current) | Global cost penalty λ ∈ {0, .05, .1, .15, .2, .3} subtracted from small and aide training rewards |
+| Budget (λ sweep) | Global cost penalty λ ∈ {0, .05, .1, .15, .2, .3} subtracted from small and aide training rewards (`opt_trees.jl`) |
+| Budget (frontier) | `opt_frontier.jl`: one regular-vs-small tree per fold, small reward lowered by the mean training gain; each held-out school fills round(q · n_s) small places by leaf gain, q = 0, 0.1, …, 1. Random and free-lunch-first get the same per-school counts. Aide is left out |
+| Placebo | `opt_rewards.py --placebo --seed N` shuffles class types within schools; only the shuffle uses N, outcome models keep seed 15. 20 DR-RF shuffles (seeds 1–20) form the null for the frontier (`placebo_summary.py`) |
 
 ## Task list
 
-Not split by person. Status as of 2026-11-18. When you start a task, add "(in progress: Adi)" or "(in progress: Daniel)" to it and push, so you don't both start the same one.
+Not split by person. Status as of 2026-11-26. When you start a task, add "(in progress: Adi)" or "(in progress: Daniel)" to it and push, so you don't both start the same one.
 
 **Done:**
 1. Data preparation and cleaning.
@@ -66,17 +72,16 @@ Not split by person. Status as of 2026-11-18. When you start a task, add "(in pr
 5. Held-out DR evaluation for the DR-RF configuration.
 6. Pipeline re-run on Adi's Mac (2026-11-18): cleaning outputs byte-for-byte identical, rewards identical up to rounding, and all 105 result rows and six fold-0 trees match. Details in notes section 10f.
 8. Semi-synthetic check (2026-11-18): planted effects of +0.3 SD are found in 5 of 5 folds, +0.2 SD in 3 of 5, +0.1 SD in 1 of 5. Trees were also trained on DM-RF, DR-linear and DM-linear rewards (part of task 15), and a bug in the linear-model rewards was fixed. Details in notes section 11.
+7. Placebo check (2026-11-26, Daniel): `--seed` added to `opt_rewards.py`. λ sweep on 6 placebos (no difference from the real λ sweep) and the frontier on 20 DR-RF placebos (the null for task 9). `rewards_dr_linear_placebo.csv` regenerated: 5 rows had been hit by the old linear-model bug. Notes 12a, b, e.
+9. Fixed-share budget frontier (2026-11-26, Daniel): `opt_frontier.jl`, `frontier_summary.py`, `placebo_summary.py`. OPT +0.03 to +0.05 SD over random at q = 0.3–0.4, p ≈ 0.05–0.19 against the placebos. Notes 12c–e.
 
 **To do (rough priority order):**
-7. (in progress: Daniel) Placebo check: run the trees on placebo rewards. OPT's gain over random should be about zero. Now mainly a yardstick for noise (how far apart policies land by chance), so run several shuffles. Two details:
-   - `opt_rewards.py` needs a `--seed` option for the shuffle; it is currently fixed at `SEED = 15`.
-   - The existing `rewards_dr_linear_placebo.csv` uses linear models. A DR-RF placebo (`--placebo` with the default `--model rf`) matches the main run.
-9. (in progress: Daniel) Budget frontier with a fixed share of small places instead of the λ sweep (the λ sweep does not control the budget smoothly). Method from notes section 9: rank students by their tree leaf's estimated gain (`G_small − G_regular`) and give small places to a set share, e.g. 0–100% in steps. Compare with random and free-lunch-first at the same share.
-10. Per-school capacity constraints (main extension). See Capacity constraints.
-11. Subgroup-level allocation baseline (staff feedback).
-12. Fix the baseline gaps: aide seats in the heuristic, per-school matching.
-13. Uncertainty: school-level bootstrap for policy values and for differences between policies.
-14. Subgroup values (free lunch, ethnicity, gender) and a run without sensitive features.
+14. Subgroup values (free lunch, ethnicity, gender) and a run without sensitive features. **Moved up:** every frontier tree splits on gender (notes 12f). Needs `opt_frontier.jl` to take a feature list, then a run without `female` and `ethnicity_grp`.
+10. Per-school capacity constraints (main extension). See Capacity constraints. The frontier already does option (b) with B_s = q · n_s; still to do: capacities from `project_star_school_capacity.csv`, aide seats, and possibly the exact MIP (option c).
+11. Subgroup-level allocation baseline (staff feedback). Can reuse the frontier's per-school seat filling.
+12. Fix the baseline gaps: aide seats in the heuristic. (Per-school matching is done in the frontier, not in the λ sweep.)
+13. Uncertainty: school-level bootstrap for policy values and for differences between policies. Done for the frontier (`frontier_summary.py`, trees held fixed); not for the λ sweep. A bootstrap that refits trees is not done.
+18. Like-for-like placebos for the DM and linear frontier runs (the current null uses DR-RF placebo trees). Placebo means are slightly positive at q = 0.6–0.9 (about +0.01); not investigated.
 15. Robustness: propensity choice, depth, tree stability, other outcomes and cohort. (DM vs DR and linear vs RF are done for the λ sweep; see task 8.)
 16. EDA figures and data summary table.
 17. Report and presentation.
@@ -110,7 +115,7 @@ sum_{i in S_s} 1{ pi(x_i) == small } <= B_s^small
 sum_{i in S_s} 1{ pi(x_i) == aide  } <= B_s^aide
 ```
 
-- **Current implementation:** only the global cost penalty λ. That is the *optional* per-student cost model, not equation 3. It controls the budget on average, not per school, and nothing checks per-school feasibility.
+- **Current implementation:** (a) the global cost penalty λ in `opt_trees.jl`, the *optional* per-student cost model, not equation 3; it controls the budget on average, not per school. (b) `opt_frontier.jl` fills each held-out school's small places by leaf gain with B_s^small = round(q · n_s) and no aide seats; quotas hold by construction in every school.
 - **Options** (notes section 6): (a) cost penalty (built); (b) tree, then fill by school: rank students by their leaf's estimated gain and fill each school's `B_s` in that order; (c) a custom MIP (e.g. a depth-2 tree with constraint 3). JuMP and Gurobi are available for (c).
 - **Starting capacities:** `project_star_school_capacity.csv` holds each school's observed counts. Scenarios such as 50/100/150% of observed seats are **assumed**, not real budgets.
 - **Critical design issue:** a fixed tree mapping `x → class type` does not guarantee per-school quotas on new schools. Document the seat-filling rule used, apply the same rule to every compared policy, and check feasibility in every evaluated school. Quota violations must be zero for anything called feasible.
@@ -206,7 +211,7 @@ A bottom-quartile objective must define the group **before treatment**. STAR has
 - Be cautious about attrition, class switching after kindergarten, and the grade-3 outcome.
 - Keep literature claims separate from our findings. Krueger reported larger small-class gains for Black and free-lunch students; in our kindergarten data the gain is the same by free lunch.
 - Single-fold results are noisy (fold spread 0.03–0.07 SD). Don't interpret a difference without an uncertainty estimate.
-- Examine splits on gender or ethnicity carefully before reporting them. The semi-synthetic runs show the trees add gender splits even when they are pure noise.
+- Examine splits on gender or ethnicity carefully before reporting them. The frontier trees' gender split is backed by a real gap in the data (notes 12f), but a policy that targets small classes by gender is a fairness problem; report it alongside the run without sensitive features. Don't cite literature on gender differences in class-size effects without checking it.
 - Only describe results that exist in results files (Current status lists which runs exist). Files with `_plant_` in the name are SYNTHETIC; never report them as STAR results.
 - Do not silently substitute a non-OPT method for OPT. For exact MIPs, report solver status, time and gap; don't call an infeasible or approximate result optimal.
 - Persist seeds, splits, model parameters, propensity assumptions, capacities, costs and results.

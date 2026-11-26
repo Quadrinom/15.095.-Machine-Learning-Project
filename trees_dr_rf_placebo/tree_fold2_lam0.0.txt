@@ -1,0 +1,4 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: ethnicity_grp is black or is missing
+    2) Prescribe: regular, 1237 points, error 17.75
+    3) Prescribe: small, 3323 points, error 17.28

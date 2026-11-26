@@ -1,0 +1,4 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Prescribe: small, 4596 points, error 21.26
+cost lambda = mean training gain = -0.0619
+leaf 1: n_train = 4596, mean training gain = -0.0619

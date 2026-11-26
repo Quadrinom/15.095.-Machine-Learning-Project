@@ -7,6 +7,7 @@ Prints, per run and cost penalty lambda (means over the 5 held-out school folds)
   first, OPT - random (mean and sd over folds), and how many folds' trees split on
   each feature.
 Runs labelled SYNTH use planted effects (opt_rewards.py --plant): not STAR results.
+Runs labelled PLACEBO shuffle class types within schools: a yardstick for noise.
 """
 import pathlib
 import sys
@@ -23,7 +24,10 @@ runs = [  # (label, results file, tree dir)
     ('SYNTH +0.2 free lunch', 'results_dr_rf_plant_free_lunch0.2.csv', 'trees_dr_rf_plant_free_lunch0.2'),
     ('SYNTH +0.3 free lunch', 'results_dr_rf_plant_free_lunch0.3.csv', 'trees_dr_rf_plant_free_lunch0.3'),
     ('SYNTH +0.3 young', 'results_dr_rf_plant_young0.3.csv', 'trees_dr_rf_plant_young0.3'),
-]
+    # Placebo: class types shuffled within schools, so OPT - random should be ~0 (task 7)
+    ('PLACEBO DR-linear', 'results_dr_linear_placebo.csv', 'trees_dr_linear_placebo'),
+] + [(f'PLACEBO DR-RF seed {s}', f'results_dr_rf_placebo{x}.csv', f'trees_dr_rf_placebo{x}')
+     for s, x in [(15, ''), (1, '_s1'), (2, '_s2'), (3, '_s3'), (4, '_s4')]]
 # Longest names first, so free_lunch_missing isn't counted as free_lunch
 FEATS = ['free_lunch_missing', 'age_at_entry_missing', 'free_lunch', 'age_at_entry',
          'female', 'ethnicity_grp', 'locale']

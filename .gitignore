@@ -1,0 +1,2 @@
+# DR-RF placebo rewards (44 MB): rebuild exactly with python opt_rewards.py --placebo --seed N
+rewards_dr_rf_placebo*.csv

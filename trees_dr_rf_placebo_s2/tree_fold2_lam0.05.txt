@@ -1,0 +1,8 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: free_lunch < 0.5
+    2) Prescribe: regular, 2430 points, error 20.47
+    3) Split: age_at_entry < 5.415
+      4) Split: age_at_entry < 5.165
+        5) Prescribe: aide, 578 points, error 21.22
+        6) Prescribe: regular, 535 points, error 20.88
+      7) Prescribe: aide, 1017 points, error 20.92

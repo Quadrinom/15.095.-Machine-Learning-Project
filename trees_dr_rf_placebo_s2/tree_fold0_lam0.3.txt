@@ -1,0 +1,2 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Prescribe: regular, 4700 points, error 20.01

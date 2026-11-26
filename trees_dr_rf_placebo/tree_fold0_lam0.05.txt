@@ -1,0 +1,8 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: locale is rural
+    2) Split: age_at_entry < 5.665
+      3) Prescribe: regular, 1627 points, error 16.97
+      4) Prescribe: small, 599 points, error 16.77
+    5) Split: ethnicity_grp is black or is missing
+      6) Prescribe: regular, 1408 points, error 17.15
+      7) Prescribe: small, 1066 points, error 16.8

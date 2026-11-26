@@ -1,9 +1,9 @@
 """Stage 1 of the OPT pipeline: cross-fitted counterfactual rewards (Gamma, eq. 1).
 
-Run: python opt_rewards.py [--method dr|dm|ipw] [--model rf|linear] [--placebo]
+Run: python opt_rewards.py [--method dr|dm|ipw] [--model rf|linear] [--placebo [--seed N]]
                            [--plant DELTA --plant-group free_lunch|young]
 Input:  project_star_analysis.csv (from clean_project_star.py), same folder
-Output: rewards_<method>_<model>[_placebo][_plant_<group><delta>].csv, long format:
+Output: rewards_<method>_<model>[_placebo[_s<seed>]][_plant_<group><delta>].csv, long format:
         test_fold, role (train/test), student_id, G_regular, G_small, G_aide
 Semi-synthetic test (--plant): adds DELTA SD to the observed outcome of small-class
 students in the group, so the right policy is known. SYNTHETIC: not a STAR result.
@@ -34,15 +34,19 @@ parser.add_argument('--method', choices=['dr', 'dm', 'ipw'], default='dr')
 parser.add_argument('--model', choices=['rf', 'linear'], default='rf')
 parser.add_argument('--placebo', action='store_true',
                     help='shuffle treatment within school; OPT gains should vanish')
+parser.add_argument('--seed', type=int, default=SEED,
+                    help='seed for the placebo shuffle only (outcome models always use SEED); '
+                         'a non-default seed adds _s<seed> to the file name')
 parser.add_argument('--plant', type=float, default=0.0,
                     help='semi-synthetic test: add this many SD to the outcome of '
                          'small-class students in --plant-group')
 parser.add_argument('--plant-group', choices=['free_lunch', 'young'], default='free_lunch',
                     help="free_lunch = free-lunch students; young = age_at_entry below the median")
 args = parser.parse_args()
-tag = (f'{args.method}_{args.model}' + ('_placebo' if args.placebo else '')
+placebo_tag = '_placebo' + (f'_s{args.seed}' if args.seed != SEED else '')
+tag = (f'{args.method}_{args.model}' + (placebo_tag if args.placebo else '')
        + (f'_plant_{args.plant_group}{args.plant:g}' if args.plant else ''))
-rng = np.random.default_rng(SEED)
+rng = np.random.default_rng(args.seed)
 
 df = pd.read_csv(HERE / 'project_star_analysis.csv')
 if args.placebo:

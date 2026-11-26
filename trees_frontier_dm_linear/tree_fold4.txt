@@ -1,0 +1,7 @@
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: female < 0.5
+    2) Prescribe: small, 2331 points, error 1.616
+    3) Prescribe: regular, 2222 points, error 1.461
+cost lambda = mean training gain = 0.183
+leaf 2: n_train = 2331, mean training gain = 0.2634
+leaf 3: n_train = 2222, mean training gain = 0.0985
