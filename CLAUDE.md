@@ -18,7 +18,7 @@ Do not presuppose that small classes are best for every student, or that the aid
 
 ## Current status (as of 2026-11-26)
 
-A first end-to-end pipeline exists (commit `07283cd`, 15 Nov 2026): data download → cleaning → cross-fitted rewards → policy trees → held-out evaluation. See `project_star_notes.txt` sections 1–9, sections 10–11 for the work of 18 Nov, section 12 for the placebo, the fixed-share frontier and the gender finding (26 Nov), and section 13 for the runs without sensitive features, subgroup values and per-school capacities (26 Nov). Section 12i lists what the 26 Nov commits changed in earlier work (including a regenerated `rewards_dr_linear_placebo.csv` and a corrected reading of the gender splits).
+A first end-to-end pipeline exists (commit `07283cd`, 15 Nov 2026): data download → cleaning → cross-fitted rewards → policy trees → held-out evaluation. See `project_star_notes.txt` sections 1–9, sections 10–11 for the work of 18 Nov, section 12 for the placebo, the fixed-share frontier and the gender finding (26 Nov), section 13 for the runs without sensitive features, subgroup values and per-school capacities, and section 14 for the subgroup-level allocation and the figures (26 Nov). Section 12i lists what the 26 Nov commits changed in earlier work (including a regenerated `rewards_dr_linear_placebo.csv` and a corrected reading of the gender splits).
 
 - **Runs done:**
   - Main configuration: DR rewards with random-forest outcome models (`rewards_dr_rf.csv`, `results_dr_rf.csv`, trees in `trees_dr_rf/`).
@@ -43,7 +43,8 @@ A first end-to-end pipeline exists (commit `07283cd`, 15 Nov 2026): data downloa
 - **Our own kindergarten data:** small classes +0.18 SD, aides +0.01 SD. The small-class gain is the same with and without free lunch.
 - **Working conclusion so far:** in kindergarten, *how many* small seats there are matters far more than *who* gets them. The only feature that ranks students within a school is gender; targeting on it is worth about +0.03 to +0.05 SD over random (borderline against placebos) and nearly shuts girls out of small classes. Without it, and under per-school capacities, OPT does not beat random. Proposed framing for the report: the no-sensitive-features policy as the main policy; the gender result as a finding about heterogeneity, with its fairness cost.
 - **Per-school capacity constraints (the main extension):** option (b) is done twice: the frontier (B_s = q · n_s, small only) and `opt_capacity.jl` (observed small and aide seats × c). The exact MIP (option c) is not done.
-- **The teaching staff asked for a subgroup-level allocation comparison** (see below). Not started.
+- **Subgroup-level allocation (staff baseline, notes 14).** Done with `subgroup_policy.py` (144 groups, same seat filling as OPT). With DR rewards the fine table overfits (≈ random) and OPT beats it by +0.03 to +0.06 SD at q = 0.3–0.4, so the tree gives up nothing for interpretability. With DM-linear rewards subgroup ≈ OPT, both +0.05 over random (p 0.048). Without gender/ethnicity, and under capacities, nothing beats random.
+- **Figures and Table 1** (`make_figures.py` → `figures/`, notes 14c): data summary by class type, gain by group, frontier, capacity, gender shares, example trees. Each figure has a CSV with its numbers.
 
 ## Decisions made
 
@@ -82,15 +83,15 @@ Not split by person. Status as of 2026-11-26. When you start a task, add "(in pr
 9. Fixed-share budget frontier (2026-11-26, Daniel): `opt_frontier.jl`, `frontier_summary.py`, `placebo_summary.py`. OPT +0.03 to +0.05 SD over random at q = 0.3–0.4, p ≈ 0.05–0.19 against the placebos. Notes 12c–e.
 14. Subgroup values and runs without sensitive features (2026-11-26, Daniel): `--drop` option, `subgroup_summary.py`. Without gender and ethnicity OPT ≈ random; the gender-targeting policy makes girls worse off than random. Notes 13a–c.
 10. Per-school capacities, option (b) (2026-11-26, Daniel): `opt_capacity.jl`, `capacity_summary.py`; observed small and aide seats × 0.5–1.5, three-arm tree, small-first seat filling. OPT − random +0.004 to +0.028, inside the placebo range. Notes 13d–e. The exact MIP is task 19.
+11. Subgroup-level allocation baseline (2026-11-26, Daniel): `subgroup_policy.py`, `subgroup_compare.py`. DR rewards: OPT > subgroup table ≈ random; DM-linear: subgroup ≈ OPT > random; without sensitive features all ≈ random. Notes 14a–b.
+16. Figures and data summary table (2026-11-26, Daniel): `make_figures.py` → `figures/` (Table 1, Figs 1–5 with CSVs). Notes 14c. Add more as the report needs them.
 
 **To do (rough priority order):**
 19. Exact MIP for capacities (option c): a depth-2 tree with equation 3 inside the fit (Gurobi + JuMP on Adi's Mac). Compare with `opt_capacity.jl` at the same scales. Optional: allocating seats *between* schools, where locale could matter.
-11. (in progress: Daniel) Subgroup-level allocation baseline (staff feedback). Can reuse the per-school seat filling of `opt_frontier.jl` / `opt_capacity.jl` (rank students by their group's mean training gain). Run it with and without the sensitive features.
 12. Fix the baseline gaps in the λ sweep (`opt_trees.jl`): aide seats in the heuristic, per-school matching. Both are done in `opt_capacity.jl`; only needed if the λ sweep stays in the report.
 13. Uncertainty: school-level bootstrap for policy values and for differences between policies. Done for the frontier, capacities and subgroups (`frontier_summary.py`, `capacity_summary.py`, `subgroup_summary.py`; trees held fixed); not for the λ sweep. A bootstrap that refits trees is not done.
 18. Like-for-like placebos for the DM and linear runs (the current null uses DR-RF placebo trees), and capacity placebos without sensitive features. Placebo means are slightly positive at q = 0.6–0.9 (about +0.01); not investigated.
 15. Robustness: propensity choice, depth, tree stability, other outcomes and cohort. (DM vs DR and linear vs RF are done for the λ sweep; see task 8.)
-16. (in progress: Daniel) EDA figures and data summary table.
 17. Report and presentation.
 
 ## Method specification

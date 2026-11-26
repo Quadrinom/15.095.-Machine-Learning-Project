@@ -1,0 +1,5 @@
+policy,gender,share_small,gain_over_random,lo,hi
+opt,Boys,0.5335,0.1067,0.063,0.1537
+opt,Girls,0.0522,-0.047,-0.0847,-0.0073
+opt_nosens,Boys,0.2993,-0.0024,-0.0388,0.0339
+opt_nosens,Girls,0.2995,0.0005,-0.0439,0.046

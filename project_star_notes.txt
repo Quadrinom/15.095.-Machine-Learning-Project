@@ -8,7 +8,8 @@ check (section 10); semi-synthetic test, DM/linear runs, linear-model bug fix
 Updated 2026-11-26: placebo runs (task 7), fixed-share budget frontier (task 9),
 small-class gain by gender (section 12).
 Updated 2026-11-26 (later): runs without sensitive features, subgroup values (task 14),
-per-school capacities (task 10) (section 13).
+per-school capacities (task 10) (section 13); subgroup-level allocation (task 11) and
+figures (task 16) (section 14).
 The shared task list is in CLAUDE.md.
 
 ==========================================================================================
@@ -831,3 +832,79 @@ g) Not done / open
   - Bootstrap that refits trees (task 13).
   - Seat-filling alternatives (exact per-school assignment on leaf estimates instead of
     small-first) and other capacity scenarios: the 0.5-1.5 scales are assumptions.
+
+
+==========================================================================================
+14. SUBGROUP-LEVEL ALLOCATION (task 11) AND FIGURES (task 16) (2026-11-26, Daniel)
+==========================================================================================
+
+a) Method (subgroup_policy.py, the teaching staff's suggestion)
+  Groups: female x free_lunch x ethnicity (white / black / other-or-unknown) x locale x
+  age band (< 5.165, 5.165-5.415, >= 5.415 years: the trees' own cut-offs, between the
+  quarter-year age values; about 27/25/49% of students). 144 possible groups; 105-111
+  have training students in each fold, median 15 students per group; 28 held-out
+  students fall in groups with no training students and get the overall mean gain.
+  Without the sensitive features (--drop): free_lunch x locale x age band = 24 groups,
+  median 164 training students.
+  Per fold: each group's mean training (G_small - G_regular) and (G_aide - G_regular),
+  then exactly the same seat-filling rules as OPT (frontier: round(q n_s) small seats
+  per school; capacity: c x observed seats, small first, then aide). With one resource
+  per school, filling by group gain solves the staff's small LP exactly for the group
+  estimates. Random and the seat counts match the OPT runs in every school (asserted).
+  Runs: four reward types (DM/linear scored with DR-RF), with and without the sensitive
+  features, and the 20 DR-RF placebos both ways (frontier_subgroup_*.csv,
+  capacity_subgroup_*.csv, subgroup_cells_*.csv). Comparison: subgroup_compare.py.
+
+b) Results (held-out DR-RF value; school bootstrap; placebos with the same features)
+  Fixed-share frontier:
+     rewards     OPT - subgroup at q 0.3-0.4     subgroup - random, best q   p
+     DR-RF       +0.034 [+0.002, +0.067] (0.3)   +0.002 (q 0.4)              1.0
+     DR-linear   +0.056 [+0.019, +0.093] (0.4)   0.000                       1.0
+     DM-RF       +0.016 to +0.019 (CI cover 0)   +0.014 (q 0.1)              0.62
+     DM-linear   -0.010 [-0.034, +0.018] (0.4)   +0.057 [+0.032, +0.083] (q 0.4)  0.048
+   Without gender and ethnicity: subgroup - random is at most +0.005 to +0.026 for all
+   four reward types (p 0.38-0.91); OPT - subgroup covers 0.
+  Capacities (c = 0.5-1.5): subgroup - random from -0.024 to +0.014 for DR-RF and DR-linear,
+   DM-linear up to +0.037 [+0.008, +0.066] at c = 0.5 (p 0.095 at its best scale), and
+   OPT - subgroup covers 0 everywhere except at the edges of significance.
+
+  Reading, with the staff's table (CLAUDE.md):
+  - With DR rewards (the main configuration), "OPT > subgroup": the 144-cell table
+    averages about 15 noisy DR rewards per cell and overfits; it lands at random
+    (subgroup - random about 0). The tree pools cells into a few large leaves and keeps
+    the gender signal. So the tree gives up nothing for interpretability here; it does
+    better than the fine table.
+  - With DM-linear rewards (smooth model predictions, low noise per student) "subgroup
+    ~ OPT, both beat random": the cell means are stable, both recover the same gender
+    gap, and both gain about +0.05 at q = 0.4 (p 0.048).
+  - Without gender and ethnicity, "subgroup ~ OPT ~ random": no useful targeting on the
+    remaining features, as in section 13.
+  - Under per-school capacities nothing clearly beats random (section 13e).
+
+c) Figures (make_figures.py -> figures/; every figure has a CSV with its numbers)
+  table1_data_summary.csv   students by class type: n, schools, female, free lunch,
+                            ethnicity, age, locale, outcomes. The arms are balanced
+                            (e.g. free lunch 47.4 / 46.9 / 49.4%); small +0.18 SD.
+  fig1_gain_by_group        held-out small-class gain by group with school-bootstrap
+                            intervals. Every group gains; the intervals of single groups
+                            are wide (+-0.1 to 0.25). The boy-girl DIFFERENCE is what is
+                            tested in 12f ([+0.074, +0.308]); other differences (Black vs
+                            white, inner-city vs others) are not significant and partly
+                            between-school.
+  fig2_frontier             gain over random vs share of small seats: OPT (all features,
+                            with 95% band), OPT without gender/ethnicity, subgroup table,
+                            free-lunch-first, against the placebo 5-95% band.
+  fig3_capacity             the same against the capacity scale c.
+  fig4_gender_shares        at q = 0.3: share of boys and girls in small classes
+                            (OPT 53% vs 5%; no-sens. and free-lunch-first 30% vs 30%), and
+                            gain over random within each gender.
+  fig5_trees                fold-0 trees: all features (boy? +0.29 vs +0.12) and without
+                            gender/ethnicity (inner-city or rural? +0.25 vs +0.11).
+  Style: one colour per policy in every figure (blue OPT, orange OPT without sensitive
+  features, aqua subgroup table, yellow free-lunch-first; random = grey dashed zero
+  line), legends below the plot, 200 dpi PNG at 6.5 in wide.
+
+d) Experiments still open (CLAUDE.md task list)
+  19 exact MIP (Adi), 15 robustness (depth, grade-3 outcome, all-grades cohort),
+  13 bootstrap refitting trees, 18 matched placebos for DM/linear. None is expected to
+  change the conclusions; 19 strengthens the optimization part of the report.
