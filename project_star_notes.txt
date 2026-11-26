@@ -632,5 +632,40 @@ h) New files
   Placebo: frontier_dr_rf_placebo[_s<N>].csv and trees_frontier_dr_rf_placebo*/ (20),
     results_dr_rf_placebo[_s1-_s4].csv, results_dr_linear_placebo.csv, trees_*placebo*/
   SYNTHETIC: frontier_dr_rf_plant_free_lunch0.3.csv, trees_frontier_dr_rf_plant_free_lunch0.3/
-  rewards_dr_rf_placebo*.csv (20 files, 44 MB) can be rebuilt exactly with
-    python opt_rewards.py --placebo --seed N
+  rewards_dr_rf_placebo.csv and rewards_dr_rf_placebo_s<N>.csv (20 files, about 41 MB on
+    disk): committed, like the other reward files. Each can also be rebuilt exactly with
+    python opt_rewards.py --placebo --seed N (seed 15 is the file without _s).
+
+i) What the 2026-11-26 commits did, and how they change Adi's work
+  Two commits on top of Adi's cf60464:
+    2a15920  "Add placebo runs (task 7) and fixed-share budget frontier (task 9)":
+             the code, results and notes in a-h, plus the CLAUDE.md update.
+    (next)   "Commit placebo reward files": the 20 DR-RF placebo reward files, removal
+             of the .gitignore that had excluded them, and this subsection.
+  (b55ebb1 before them only marked tasks 7 and 9 "in progress: Daniel" in CLAUDE.md.)
+
+  Changed in Adi's files:
+  - opt_rewards.py: new --seed option (placebo shuffle only) and the _s<N> file-name
+    suffix. Nothing else changed: with the default seed every output file name and
+    content is the same as before, so all of Adi's reward files stay valid.
+  - rewards_dr_linear_placebo.csv: REGENERATED. Section 11a says this file was not
+    affected by the linear-model bug; it was, in 5 of 28,760 rows (by up to 0.83). The
+    other rows differ only by float rounding (~1e-15). Adi had not run trees on it, so no
+    earlier result depended on it; results_dr_linear_placebo.csv (new) uses the fixed file.
+  - summarize_runs.py: six placebo runs added to the run list. No change to the logic;
+    Adi's runs print exactly as before.
+  - CLAUDE.md: date, Current status, Decisions (new Budget (frontier) and Placebo rows,
+    --seed in the Rewards row), task list (7 and 9 to Done, 14 moved to the top, notes on
+    10, 12 and 13, new task 18), Capacity constraints "Current implementation", and the
+    gender guardrail.
+  - Interpretation: Adi's reading in 11b and CLAUDE.md that the gender splits in the
+    semi-synthetic runs were "pure noise" is corrected (12f): the real data have a
+    gender gap, and the planted runs sit on top of it. Section 11 itself was NOT edited;
+    the correction lives here and in CLAUDE.md.
+  - The λ-sweep conclusion (OPT does not beat random) stands, and the placebos now back
+    it up (12b). The "working conclusion" in CLAUDE.md is refined, not reversed: how many
+    small seats matters far more than who gets them, with a small, borderline gain from
+    targeting (12d-g).
+
+  Not changed: clean_project_star.py, opt_trees.jl, all of Adi's results_*.csv and
+  trees_*/ files, the semi-synthetic runs, and sections 1-11 of these notes.

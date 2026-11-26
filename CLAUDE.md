@@ -18,7 +18,7 @@ Do not presuppose that small classes are best for every student, or that the aid
 
 ## Current status (as of 2026-11-26)
 
-A first end-to-end pipeline exists (commit `07283cd`, 15 Nov 2026): data download → cleaning → cross-fitted rewards → policy trees → held-out evaluation. See `project_star_notes.txt` sections 1–9, sections 10–11 for the work of 18 Nov, and section 12 for the placebo, the fixed-share frontier and the gender finding (26 Nov).
+A first end-to-end pipeline exists (commit `07283cd`, 15 Nov 2026): data download → cleaning → cross-fitted rewards → policy trees → held-out evaluation. See `project_star_notes.txt` sections 1–9, sections 10–11 for the work of 18 Nov, and section 12 for the placebo, the fixed-share frontier and the gender finding (26 Nov). Section 12i lists what the 26 Nov commits changed in earlier work (including a regenerated `rewards_dr_linear_placebo.csv` and a corrected reading of the gender splits).
 
 - **Runs done:**
   - Main configuration: DR rewards with random-forest outcome models (`rewards_dr_rf.csv`, `results_dr_rf.csv`, trees in `trees_dr_rf/`).
