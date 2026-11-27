@@ -1,0 +1,6 @@
+# macOS
+.DS_Store
+
+# Course materials and other teams' work: keep local, not in the shared repo
+Lectures/
+Exemplar example.pdf

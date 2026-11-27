@@ -975,8 +975,11 @@ d) Note on tie-breaking (affects how opt_capacity.jl results are read)
   Conclusion unchanged: under per-school capacities no policy clearly beats chance.
 
 e) What this means
-  - Optimization works: the exact method certifiably finds policies worth about 2-4x
-    more than IAI's on the training schools.
+  - Optimization works: on the training schools the exact optimum beats random by
+    +0.040 to +0.054 SD per student, 0.02-0.04 SD more than IAI's policy (+0.005 to
+    +0.029). (An earlier draft of this section said "2-4x"; the ratio actually runs
+    from 1.8x to 8.8x because IAI's gain is near 0 at large c, so the difference is
+    the better summary.)
   - That extra in-sample value does not survive on held-out schools: exact and IAI are
     statistically indistinguishable (every exact - IAI interval covers 0), and both are
     within the placebo range. Without gender and ethnicity the exact optimum is worse

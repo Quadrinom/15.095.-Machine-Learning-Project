@@ -4,7 +4,7 @@
 
 Context for Claude Code on an MIT 15.095 (*Machine Learning Under a Modern Optimization Lens*) final project by **Daniel Krupp** and **Adi Palaniappan**. Either of them may be the user in a session. This file holds the plan, the decisions already made, the current status, the task list and the open questions. Detailed implementation notes and results are in `project_star_notes.txt`; read it before changing code.
 
-Inspect the actual files before modifying anything. Never present an assumption as an observed fact. Last updated **2026-11-26**.
+Inspect the actual files before modifying anything. Never present an assumption as an observed fact. Last updated **2026-11-27**.
 
 ## Project in one paragraph
 
@@ -42,7 +42,7 @@ A first end-to-end pipeline exists (commit `07283cd`, 15 Nov 2026): data downloa
   - The λ-sweep placebos look the same as the real λ sweep (OPT − random −0.032 to +0.015), so the λ sweep finds nothing beyond noise.
 - **Our own kindergarten data:** small classes +0.18 SD, aides +0.01 SD. The small-class gain is the same with and without free lunch.
 - **Working conclusion so far:** in kindergarten, *how many* small seats there are matters far more than *who* gets them. The only feature that ranks students within a school is gender; targeting on it is worth about +0.03 to +0.05 SD over random (borderline against placebos) and nearly shuts girls out of small classes. Without it, and under per-school capacities, OPT does not beat random. Proposed framing for the report: the no-sensitive-features policy as the main policy; the gender result as a finding about heterogeneity, with its fairness cost.
-- **Per-school capacity constraints (the main extension):** option (b) is done twice: the frontier (B_s = q · n_s, small only) and `opt_capacity.jl` (observed small and aide seats × c). Option (c) is done as an exact enumeration (`opt_exact.jl`, notes 15): every depth ≤ 2 tree and every leaf order, with equation 3 inside the fit, is a certified optimum of the training objective. In-sample it beats IAI's policy by about 2–4×, but held-out exact − IAI covers 0 at every scale, exact − random reaches +0.031 (c = 1.25, placebo p = 0.095), and without gender/ethnicity exact is *worse* than random. More optimization overfits the noisy rewards; the optimizer is not the bottleneck.
+- **Per-school capacity constraints (the main extension):** option (b) is done twice: the frontier (B_s = q · n_s, small only) and `opt_capacity.jl` (observed small and aide seats × c). Option (c) is done as an exact enumeration (`opt_exact.jl`, notes 15): every depth ≤ 2 tree and every leaf order, with equation 3 inside the fit, is a certified optimum of the training objective. In-sample it beats random by +0.040 to +0.054 SD per student, 0.02–0.04 SD more than IAI's policy (+0.005 to +0.029), but held-out exact − IAI covers 0 at every scale, exact − random reaches +0.031 (c = 1.25, placebo p = 0.095), and without gender/ethnicity exact is *worse* than random. More optimization overfits the noisy rewards; the optimizer is not the bottleneck.
 - **Subgroup-level allocation (staff baseline, notes 14).** Done with `subgroup_policy.py` (144 groups, same seat filling as OPT). With DR rewards the fine table overfits (≈ random) and OPT beats it by +0.03 to +0.06 SD at q = 0.3–0.4, so the tree gives up nothing for interpretability. With DM-linear rewards subgroup ≈ OPT, both +0.05 over random (p 0.048). Without gender/ethnicity, and under capacities, nothing beats random.
 - **Figures and Table 1** (`make_figures.py` → `figures/`, notes 14c): data summary by class type, gain by group, frontier, capacity, gender shares, example trees. Each figure has a CSV with its numbers.
 
@@ -69,7 +69,7 @@ Details and counts are in `project_star_notes.txt` sections 2–6.
 
 ## Task list
 
-Not split by person. Status as of 2026-11-26. When you start a task, add "(in progress: Adi)" or "(in progress: Daniel)" to it and push, so you don't both start the same one.
+Not split by person. Status as of 2026-11-27. When you start a task, add "(in progress: Adi)" or "(in progress: Daniel)" to it and push, so you don't both start the same one.
 
 **Done:**
 1. Data preparation and cleaning.
@@ -85,14 +85,14 @@ Not split by person. Status as of 2026-11-26. When you start a task, add "(in pr
 10. Per-school capacities, option (b) (2026-11-26, Daniel): `opt_capacity.jl`, `capacity_summary.py`; observed small and aide seats × 0.5–1.5, three-arm tree, small-first seat filling. OPT − random +0.004 to +0.028, inside the placebo range. Notes 13d–e. The exact MIP is task 19.
 11. Subgroup-level allocation baseline (2026-11-26, Daniel): `subgroup_policy.py`, `subgroup_compare.py`. DR rewards: OPT > subgroup table ≈ random; DM-linear: subgroup ≈ OPT > random; without sensitive features all ≈ random. Notes 14a–b.
 16. Figures and data summary table (2026-11-26, Daniel): `make_figures.py` → `figures/` (Table 1, Figs 1–5 with CSVs). Notes 14c. Add more as the report needs them.
-
-**To do (rough priority order):**
 19. Exact capacity optimization (option c), done 2026-11-27 (Adi): `opt_exact.jl`, `exact_summary.py`. Exhaustive enumeration of every depth ≤ 2 tree (leaves ≥ 50) and every leaf order, with equation 3 inside the fit; certified optimum of the training objective, no MIP solver needed. Main run, without gender/ethnicity, and 20 placebos each. Exact beats IAI in-sample, not held-out; see notes 15. Also: scoring ties by their expected value instead of one random draw changes `opt_capacity.jl`'s OPT − random noticeably (c = 1.0: +0.006 → +0.022), still within the placebo range (notes 15d). Not done: allocating seats *between* schools.
+
+**To do (rough priority order; all optional before the deadline except 17):**
+17. Report and presentation (in progress: Adi). Outline: `report/report_outline.tex`; the report itself is in Overleaf.
 12. Fix the baseline gaps in the λ sweep (`opt_trees.jl`): aide seats in the heuristic, per-school matching. Both are done in `opt_capacity.jl`; only needed if the λ sweep stays in the report.
 13. Uncertainty: school-level bootstrap for policy values and for differences between policies. Done for the frontier, capacities and subgroups (`frontier_summary.py`, `capacity_summary.py`, `subgroup_summary.py`; trees held fixed); not for the λ sweep. A bootstrap that refits trees is not done.
 18. Like-for-like placebos for the DM and linear runs (the current null uses DR-RF placebo trees), and capacity placebos without sensitive features. Placebo means are slightly positive at q = 0.6–0.9 (about +0.01); not investigated.
 15. Robustness: propensity choice, depth, tree stability, other outcomes and cohort. (DM vs DR and linear vs RF are done for the λ sweep; see task 8.)
-17. Report and presentation.
 
 ## Method specification
 
@@ -226,21 +226,30 @@ A bottom-quartile objective must define the group **before treatment**. STAR has
 - Don't overwrite existing data, results or code without checking them first. Record changes in `project_star_notes.txt`.
 - Develop incrementally with small synthetic tests. Label synthetic results clearly; never report them as STAR results.
 
+## Deadlines
+
+From the course's project information (supersedes the dates in Lecture 1, which said 12/08 and 12/14):
+- Presentation slides on Gradescope: **Mon 1 Dec 2026, 11:59 AM (noon)**.
+- 8-page report on Gradescope: **Mon 1 Dec 2026, 11:59 PM**.
+- Presentations in class: **Tue 2 Dec 2026**, 8 minutes per team; attendance compulsory.
+
 ## Still open
 
-- Capacity scenarios (e.g. 50/100/150% of observed seats).
-- The seat-filling rule that combines a tree with per-school quotas on new schools (option b vs c).
-- Locked test set, or 5-fold cross-validation only.
-- Depth range: the code uses 1–3, notes experiment 3 says 1–4, the original plan said 2–4.
-- Age bands for the subgroup allocation, and a minimum group size.
-- Cost ratios, if a cost model is kept beyond λ.
-- Fairness objective beyond subgroup reporting.
-- Whether to use a causal forest as a heterogeneity diagnostic.
-- Deadlines and report length: verify against the current course announcement.
+- Report framing, to confirm together: the policy without gender/ethnicity as the main policy, and the gender result as a finding about who benefits, with its fairness cost.
+- Whether the λ sweep stays in the report (currently one sentence).
+
+## Settled (previously open)
+
+- Capacity scenarios: the fixed-share frontier (q = 0–1) and c × observed STAR seats, c = 0.5–1.5. Both are assumed scenarios.
+- Seat filling: option (b), small seats first by leaf priority (`opt_frontier.jl`, `opt_capacity.jl`); option (c), exact enumeration (`opt_exact.jl`).
+- Locked test set: none. Five-fold school cross-validation only, stated as a limitation.
+- Depth: IAI 1–3 by GridSearch; the exact enumeration covers depth ≤ 2.
+- Age bands for the subgroup allocation: < 5.165, 5.165–5.415, ≥ 5.415 years.
+- Not pursued: cost ratios beyond λ, a fairness objective beyond subgroup reporting, a causal forest diagnostic.
 
 ## Report organization
 
-Target about **8 pages** (verify current instructions). The team has an Overleaf outline.
+Target **8 pages** (course project page; the exemplar report put references and contributions after the 8 pages). The team has an Overleaf outline.
 1. **Introduction:** STAR motivation, research question, contribution.
 2. **Data:** randomization, class types, outcome/feature choices, cleaning, EDA.
 3. **Methods:** DR/DM rewards, OPT, capacity constraints, subgroup-level allocation, optional cost/equity variants.
