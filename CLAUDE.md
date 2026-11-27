@@ -87,7 +87,7 @@ Not split by person. Status as of 2026-11-26. When you start a task, add "(in pr
 16. Figures and data summary table (2026-11-26, Daniel): `make_figures.py` → `figures/` (Table 1, Figs 1–5 with CSVs). Notes 14c. Add more as the report needs them.
 
 **To do (rough priority order):**
-19. Exact MIP for capacities (option c): a depth-2 tree with equation 3 inside the fit (Gurobi + JuMP on Adi's Mac). Compare with `opt_capacity.jl` at the same scales. Optional: allocating seats *between* schools, where locale could matter.
+19. (in progress: Adi) Exact MIP for capacities (option c): a depth-2 tree with equation 3 inside the fit (Gurobi + JuMP on Adi's Mac). Compare with `opt_capacity.jl` at the same scales. Optional: allocating seats *between* schools, where locale could matter.
 12. Fix the baseline gaps in the λ sweep (`opt_trees.jl`): aide seats in the heuristic, per-school matching. Both are done in `opt_capacity.jl`; only needed if the λ sweep stays in the report.
 13. Uncertainty: school-level bootstrap for policy values and for differences between policies. Done for the frontier, capacities and subgroups (`frontier_summary.py`, `capacity_summary.py`, `subgroup_summary.py`; trees held fixed); not for the λ sweep. A bootstrap that refits trees is not done.
 18. Like-for-like placebos for the DM and linear runs (the current null uses DR-RF placebo trees), and capacity placebos without sensitive features. Placebo means are slightly positive at q = 0.6–0.9 (about +0.01); not investigated.
