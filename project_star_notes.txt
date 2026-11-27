@@ -994,3 +994,61 @@ f) Files
     name = dr_rf, dr_rf__drop-female-ethnicity_grp, and the 20 placebos
     dr_rf_placebo[_s<N>] with and without __drop-female-ethnicity_grp
   Not changed: every earlier script and output.
+
+
+==========================================================================================
+16. DOES THE GENDER FINDING HOLD UP? (2026-11-27, Adi)
+==========================================================================================
+
+a) Method (gender_robustness.py -> gender_robustness.csv)
+  Kindergarten entrants, treatment = kindergarten class type (intent-to-treat), as in
+  every other analysis. For each outcome: the small-class gain (small vs regular) for
+  boys and girls, and the gap (boys - girls), two ways:
+    raw: difference in means within each gender
+    FE:  regression with school fixed effects (within-school comparison, matching the
+         within-school randomization), with aide and its gender interaction included
+  95% intervals: whole schools resampled, 1000 draws, seed 15.
+  Later grades: outcomes exist only for students still in STAR (grade 1: 69%, grade 2:
+  56%, grade 3: 49%), and attrition differs by arm and gender (e.g. grade 1: boys in
+  regular classes 64% present vs 71% in small classes). So each later-grade row is
+  paired with the K outcome for the same students: if that matches the full-sample K
+  gap, attrition is not what changes the gap.
+  Sanity check: K total reproduces 12f (raw +0.211 vs +0.21; FE +0.141 vs +0.135).
+
+b) Results (gap = boys' small-class gain minus girls', SD)
+   outcome                       n      raw gap  [95% CI]           FE gap  [95% CI]
+   K total (main)                5752   +0.211 [+0.084, +0.340]     +0.141 [+0.030, +0.268]
+   K reading                     5752   +0.171 [+0.023, +0.315]     +0.107 [-0.016, +0.238]
+   K math                        5752   +0.250 [+0.111, +0.383]     +0.175 [+0.063, +0.288]
+   Grade 1 total                 3975   +0.141 [+0.001, +0.285]     +0.060 [-0.066, +0.189]
+     K total, same students      3975   +0.227 [+0.077, +0.396]     +0.157 [+0.026, +0.309]
+   Grade 1 reading               3986   +0.090 [-0.060, +0.252]     +0.006 [-0.132, +0.156]
+   Grade 1 math                  4097   +0.195 [+0.032, +0.341]     +0.116 [-0.016, +0.242]
+   Grade 2 total                 3225   +0.190 [+0.038, +0.365]     +0.127 [-0.002, +0.280]
+     K total, same students      3225   +0.231 [+0.074, +0.386]     +0.154 [+0.019, +0.293]
+   Grade 3 total                 2798   +0.263 [+0.110, +0.431]     +0.203 [+0.058, +0.355]
+     K total, same students      2798   +0.223 [+0.049, +0.397]     +0.181 [+0.025, +0.328]
+
+c) Reading
+  - Direction: boys gain more in all 11 rows, by both methods.
+  - Kindergarten: holds in reading and math separately; larger in math (FE +0.175,
+    interval excludes 0) than reading (FE +0.107, interval just includes 0).
+  - Grade 1: the within-school gap shrinks to +0.060 and its interval covers 0; grade-1
+    reading shows no gap. The same students' K gap is +0.157, so the shrinkage comes
+    from the later grade, not from who left the study.
+  - Grades 2-3: the gap is back (grade 3 FE +0.203, interval excludes 0), but these
+    samples lose about half the students, with attrition differing by arm and gender,
+    and no attrition weighting is applied: suggestive only.
+  - Several outcomes are tested, so single intervals that just exclude 0 should not be
+    over-read.
+
+d) What this means for the report
+  The kindergarten finding is robust: boys gained more from small classes than girls,
+  in both subjects (mainly math), by about 0.14 SD within schools (0.21 in raw means).
+  The direction persists in every later grade, but beyond kindergarten it is not
+  consistently distinguishable from zero. Safe wording: "In kindergarten, boys gained
+  more from small classes than girls, especially in mathematics; the same direction
+  appears in later grades, though less precisely estimated." Policy conclusions are
+  unchanged.
+
+e) Files: gender_robustness.py, gender_robustness.csv
