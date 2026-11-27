@@ -1,0 +1,39 @@
+fold 1: 7088 valid trees (depth <= 2, leaves >= 50) x all leaf orders checked; 31 candidate splits
+
+== scale c = 0.5: exact training gain over all-regular 0.0514 per student (random 0.003, IAI policy 0.0336)
+1) age_at_entry < 5.415?
+   yes: age_at_entry < 5.165? yes: leaf 1, no: leaf 2
+   no:  female = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 3, 1, 4]; aide-seat order: [3, 4, 1, 2]
+
+== scale c = 0.75: exact training gain over all-regular 0.0655 per student (random 0.005, IAI policy 0.0506)
+1) age_at_entry < 5.415?
+   yes: age_at_entry < 5.165? yes: leaf 1, no: leaf 2
+   no:  female = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 3, 1, 4]; aide-seat order: [2, 3, 1, 4]
+
+== scale c = 1.0: exact training gain over all-regular 0.0699 per student (random 0.0065, IAI policy 0.0626)
+1) female = 1?
+   yes: free_lunch = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 1, 4, 2]; aide-seat order: [1, 2, 4, 3]
+
+== scale c = 1.25: exact training gain over all-regular 0.068 per student (random 0.008, IAI policy 0.0577)
+1) female = 1?
+   yes: free_lunch = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 1, 4, 2]; aide-seat order: [2, 1, 4, 3]
+
+== scale c = 1.5: exact training gain over all-regular 0.0592 per student (random 0.0111, IAI policy 0.0375)
+1) female = 1?
+   yes: free_lunch = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 1, 4, 2]; aide-seat order: [2, 1, 3, 4]
+
+== IAI tree (opt_capacity.jl, depth 3):
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: female < 0.5
+    2) Split: age_at_entry < 5.415
+      3) Prescribe: small, 1171 points, error 21.22
+      4) Prescribe: regular, 1203 points, error 20.95
+    5) Prescribe: aide, 2222 points, error 20.93

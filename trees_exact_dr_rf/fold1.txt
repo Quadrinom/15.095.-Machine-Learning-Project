@@ -1,0 +1,39 @@
+fold 1: 7088 valid trees (depth <= 2, leaves >= 50) x all leaf orders checked; 31 candidate splits
+
+== scale c = 0.5: exact training gain over all-regular 0.0829 per student (random 0.0321, IAI policy 0.065)
+1) female = 1?
+   yes: age_at_entry < 5.165? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 1, 2, 4]; aide-seat order: [3, 4, 1, 2]
+
+== scale c = 0.75: exact training gain over all-regular 0.1122 per student (random 0.0481, IAI policy 0.0926)
+1) female = 1?
+   yes: age_at_entry < 5.165? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 1, 2, 4]; aide-seat order: [3, 4, 2, 1]
+
+== scale c = 1.0: exact training gain over all-regular 0.1232 per student (random 0.0647, IAI policy 0.0977)
+1) free_lunch = 1?
+   yes: age_at_entry < 5.665? yes: leaf 1, no: leaf 2
+   no:  female = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [4, 3, 2, 1]; aide-seat order: [1, 4, 3, 2]
+
+== scale c = 1.25: exact training gain over all-regular 0.1285 per student (random 0.0814, IAI policy 0.0985)
+1) free_lunch = 1?
+   yes: age_at_entry < 5.665? yes: leaf 1, no: leaf 2
+   no:  female = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [4, 3, 2, 1]; aide-seat order: [1, 4, 3, 2]
+
+== scale c = 1.5: exact training gain over all-regular 0.1368 per student (random 0.0967, IAI policy 0.1027)
+1) free_lunch = 1?
+   yes: age_at_entry < 5.665? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 3, 1, 4]; aide-seat order: [1, 2, 4, 3]
+
+== IAI tree (opt_capacity.jl, depth 3):
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: locale is inner-city or is missing
+    2) Prescribe: aide, 788 points, error 20.2
+    3) Split: female < 0.5
+      4) Prescribe: small, 1979 points, error 20
+      5) Prescribe: regular, 1829 points, error 19.78

@@ -908,3 +908,86 @@ d) Experiments still open (CLAUDE.md task list)
   19 exact MIP (Adi), 15 robustness (depth, grade-3 outcome, all-grades cohort),
   13 bootstrap refitting trees, 18 matched placebos for DM/linear. None is expected to
   change the conclusions; 19 strengthens the optimization part of the report.
+
+
+==========================================================================================
+15. EXACT CAPACITY-CONSTRAINED POLICY (task 19) (2026-11-27, Adi)
+==========================================================================================
+
+a) Method (opt_exact.jl; summary: exact_summary.py)
+  Goal: equation 3 INSIDE the fit, solved to certified optimality, and compared with
+  the IAI policy of opt_capacity.jl at the same capacity scales c = 0.5-1.5.
+  Policy class: a tree of depth <= 2 (every leaf >= 50 training students, as IAI's
+  minbucket) plus two leaf orders: small seats go to leaves in one order, then aide
+  seats to the remaining students in another. Seats are filled in every school exactly
+  as in opt_capacity.jl (small first, then aide, every seat used, B_s = c x observed
+  STAR seats). Ties inside a leaf are scored by their exact expected value.
+  Candidate splits: every split IAI can make on these features (31 with all features:
+  female, free_lunch, 15 age cut-offs, 7 two-way splits of ethnicity_grp and 7 of
+  locale; 23 without gender and ethnicity). The missing flags cannot make a leaf of 50.
+  Exactness: for each held-out fold EVERY valid tree (7,088-9,016 per fold; 3,160-3,582
+  without gender/ethnicity) and EVERY pair of leaf orders is scored on the training
+  schools with their own capacities, and the best is kept. That is the certified
+  optimum of the training objective (sum of training rewards subject to equation 3 in
+  every training school) over this class. No MIP solver was needed: the class is small
+  enough to enumerate (about 40 s per run, single-threaded).
+  Checks (asserted): the refit IAI tree reproduces opt_capacity.jl's saved leaves for
+  the real run and all 20 placebos; exact >= IAI on the training objective whenever the
+  IAI tree has depth <= 2 (all five folds of the main run).
+  Placebo: the same 20 DR-RF shuffles as 12e, same features, through opt_exact.jl
+  (exact and IAI policies).
+
+b) Results, all features (DR-RF; held-out DR value; CIs: school bootstrap, policies fixed)
+
+  In-sample, gain over random per training student (mean over folds):
+     c      0.5    0.75   1.0    1.25   1.5
+     exact  0.040  0.052  0.054  0.052  0.044
+     IAI    0.021  0.029  0.022  0.011  0.005
+  IAI's heuristic leaves about half or more of the attainable training gain unused.
+
+  Held-out:
+     c     exact-random  95% CI            exact-IAI  95% CI            IAI-random  95% CI
+     0.5   +0.007        [-0.015, +0.029]  -0.012     [-0.033, +0.008]  +0.018      [+0.005, +0.034]
+     0.75  +0.021        [-0.009, +0.051]  -0.005     [-0.036, +0.025]  +0.026      [+0.007, +0.046]
+     1.0   +0.027        [-0.001, +0.056]  +0.005     [-0.020, +0.030]  +0.022      [+0.007, +0.040]
+     1.25  +0.031        [+0.003, +0.060]  +0.020     [-0.004, +0.045]  +0.012      [-0.003, +0.028]
+     1.5   -0.003        [-0.029, +0.022]  -0.007     [-0.037, +0.021]  +0.004      [-0.016, +0.024]
+  Placebo: exact - random by chance has 95th percentile 0.022-0.027 per scale; best
+  scale of the real run (c = 1.25, +0.031) gives p = 0.095. IAI (expected tie-break):
+  best scale c = 0.75, +0.026, p = 0.095.
+  Exact trees split on gender in 5 of 5 folds at every scale except c = 1.5 (4 of 5),
+  plus age (4-5 of 5) and free lunch (5 of 5 at c = 1.0 and 1.25).
+
+c) Results without gender and ethnicity (--drop=female,ethnicity_grp)
+  In-sample gain over random: exact +0.026 to +0.039, IAI +0.004 to +0.013.
+  Held-out exact - random: -0.018, -0.022, -0.029 [-0.054, -0.005], -0.006, -0.015 at
+  c = 0.5 ... 1.5; p (best scale) = 0.95. Exact - IAI covers 0 everywhere. The exact
+  trees split on age and free lunch, which carry no real signal (11, 12d), so the
+  certified optimum fits noise and does WORSE than random at c = 1.0.
+
+d) Note on tie-breaking (affects how opt_capacity.jl results are read)
+  capacity_dr_rf.csv scores OPT with one random tie-break draw inside each leaf. Scoring
+  the same policy with the exact expected value changes OPT - random noticeably, e.g.
+  at c = 1.0 from +0.006 to +0.022. Random allocation is identical in both (asserted).
+  With the expected value IAI's bootstrap intervals exclude 0 at c = 0.5-1.0, but the
+  placebo run through the same pipeline gives p = 0.095 at the best scale: the bootstrap
+  holds the trees fixed and is too optimistic; the placebo is the right yardstick.
+  Conclusion unchanged: under per-school capacities no policy clearly beats chance.
+
+e) What this means
+  - Optimization works: the exact method certifiably finds policies worth about 2-4x
+    more than IAI's on the training schools.
+  - That extra in-sample value does not survive on held-out schools: exact and IAI are
+    statistically indistinguishable (every exact - IAI interval covers 0), and both are
+    within the placebo range. Without gender and ethnicity the exact optimum is worse
+    than random. More optimization means more overfitting to noisy DR rewards.
+  - For the report: the bottleneck is the noise in the rewards and the weak signal in
+    the features, not the optimizer. A certified optimum is a useful check (it shows
+    IAI is not leaving held-out value on the table), not a better policy.
+
+f) Files
+  opt_exact.jl, exact_summary.py
+  exact_capacity_<name>.csv, exact_insample_<name>.csv, trees_exact_<name>/ for
+    name = dr_rf, dr_rf__drop-female-ethnicity_grp, and the 20 placebos
+    dr_rf_placebo[_s<N>] with and without __drop-female-ethnicity_grp
+  Not changed: every earlier script and output.

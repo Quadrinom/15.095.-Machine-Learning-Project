@@ -1,0 +1,45 @@
+fold 2: 9016 valid trees (depth <= 2, leaves >= 50) x all leaf orders checked; 31 candidate splits
+
+== scale c = 0.5: exact training gain over all-regular 0.0213 per student (random -0.0128, IAI policy 0.0274)
+1) female = 1?
+   yes: age_at_entry < 5.415? yes: leaf 1, no: leaf 2
+   no:  locale in [inner-city,rural,suburban]? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [4, 1, 3, 2]; aide-seat order: [4, 1, 2, 3]
+
+== scale c = 0.75: exact training gain over all-regular 0.0264 per student (random -0.0185, IAI policy 0.0323)
+1) female = 1?
+   yes: age_at_entry < 5.415? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 2, 3]; aide-seat order: [4, 1, 2, 3]
+
+== scale c = 1.0: exact training gain over all-regular 0.0164 per student (random -0.0251, IAI policy 0.0237)
+1) female = 1?
+   yes: locale in [inner-city,rural]? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 3, 2, 4]; aide-seat order: [4, 1, 3, 2]
+
+== scale c = 1.25: exact training gain over all-regular 0.0036 per student (random -0.0315, IAI policy -0.0055)
+1) age_at_entry < 5.665?
+   yes: free_lunch = 1? yes: leaf 1, no: leaf 2
+   no:  locale in [rural]? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 3, 1, 4]; aide-seat order: [3, 1, 2, 4]
+
+== scale c = 1.5: exact training gain over all-regular -0.0051 per student (random -0.0339, IAI policy -0.0161)
+1) free_lunch = 1?
+   yes: female = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 1, 4, 2]; aide-seat order: [2, 4, 3, 1]
+
+== IAI tree (opt_capacity.jl, depth 3):
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: age_at_entry < 5.665
+    2) Split: locale in [suburban,urban]
+      3) Split: age_at_entry < 5.165
+        4) Prescribe: regular, 387 points, error 13.65
+        5) Prescribe: small, 687 points, error 13.5
+      6) Split: female < 0.5
+        7) Prescribe: regular, 1199 points, error 13.93
+        8) Prescribe: aide, 1163 points, error 13.74
+    9) Split: locale in [inner-city,suburban,urban] or is missing
+      10) Prescribe: regular, 531 points, error 13.61
+      11) Prescribe: aide, 593 points, error 13.5

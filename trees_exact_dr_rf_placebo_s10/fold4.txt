@@ -1,0 +1,37 @@
+fold 4: 7300 valid trees (depth <= 2, leaves >= 50) x all leaf orders checked; 31 candidate splits
+
+== scale c = 0.5: exact training gain over all-regular 0.0241 per student (random -0.0169, IAI policy 0.0035)
+1) age_at_entry < 5.165?
+   yes: free_lunch = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 1, 2, 4]; aide-seat order: [3, 1, 4, 2]
+
+== scale c = 0.75: exact training gain over all-regular 0.0291 per student (random -0.0255, IAI policy 0.0049)
+1) age_at_entry < 5.165?
+   yes: female = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 1, 2, 4]; aide-seat order: [3, 2, 1, 4]
+
+== scale c = 1.0: exact training gain over all-regular 0.0267 per student (random -0.034, IAI policy -0.007)
+1) age_at_entry < 5.415?
+   yes: age_at_entry < 5.165? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 1, 4, 3]; aide-seat order: [1, 2, 3, 4]
+
+== scale c = 1.25: exact training gain over all-regular 0.0019 per student (random -0.0425, IAI policy -0.0313)
+1) age_at_entry < 5.665?
+   yes: age_at_entry < 5.415? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 6.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 1, 2, 4]; aide-seat order: [3, 1, 2, 4]
+
+== scale c = 1.5: exact training gain over all-regular -0.0036 per student (random -0.0493, IAI policy -0.0527)
+1) age_at_entry < 5.415?
+   yes: female = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [4, 1, 2, 3]; aide-seat order: [1, 2, 4, 3]
+
+== IAI tree (opt_capacity.jl, depth 1):
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: age_at_entry < 5.415
+    2) Prescribe: aide, 2326 points, error 13.91
+    3) Prescribe: regular, 2227 points, error 13.63

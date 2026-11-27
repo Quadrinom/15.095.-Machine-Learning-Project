@@ -1,0 +1,37 @@
+fold 2: 3445 valid trees (depth <= 2, leaves >= 50) x all leaf orders checked; 23 candidate splits
+
+== scale c = 0.5: exact training gain over all-regular 0.0677 per student (random 0.0392, IAI policy 0.0392)
+1) age_at_entry < 5.665?
+   yes: age_at_entry < 5.415? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.915? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 2, 1, 4]; aide-seat order: [2, 4, 3, 1]
+
+== scale c = 0.75: exact training gain over all-regular 0.0958 per student (random 0.0597, IAI policy 0.0597)
+1) age_at_entry < 5.415?
+   yes: locale in [rural]? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 3, 2]; aide-seat order: [3, 1, 2, 4]
+
+== scale c = 1.0: exact training gain over all-regular 0.1192 per student (random 0.0794, IAI policy 0.0794)
+1) age_at_entry < 5.415?
+   yes: free_lunch = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 4, 3, 1]; aide-seat order: [3, 1, 4, 2]
+
+== scale c = 1.25: exact training gain over all-regular 0.1394 per student (random 0.0989, IAI policy 0.0989)
+1) free_lunch = 1?
+   yes: age_at_entry < 5.665? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 3, 4, 1]; aide-seat order: [1, 2, 4, 3]
+
+== scale c = 1.5: exact training gain over all-regular 0.1543 per student (random 0.1159, IAI policy 0.1159)
+1) free_lunch = 1?
+   yes: age_at_entry < 5.665? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 2, 4, 1]; aide-seat order: [4, 1, 3, 2]
+
+== IAI tree (opt_capacity.jl, depth 2):
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: locale in [inner-city,suburban] or is missing
+    2) Prescribe: small, 1794 points, error 20.08
+    3) Prescribe: regular, 2766 points, error 19.9

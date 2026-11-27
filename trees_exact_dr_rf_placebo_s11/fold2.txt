@@ -1,0 +1,37 @@
+fold 2: 9016 valid trees (depth <= 2, leaves >= 50) x all leaf orders checked; 31 candidate splits
+
+== scale c = 0.5: exact training gain over all-regular 0.0427 per student (random -0.0031, IAI policy 0.0049)
+1) age_at_entry < 5.165?
+   yes: female = 1? yes: leaf 1, no: leaf 2
+   no:  ethnicity_grp in [black,other]? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 3, 4, 1]; aide-seat order: [2, 3, 1, 4]
+
+== scale c = 0.75: exact training gain over all-regular 0.0451 per student (random -0.0046, IAI policy 0.0079)
+1) female = 1?
+   yes: locale in [inner-city,suburban]? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.165? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 2, 4, 1]; aide-seat order: [3, 2, 4, 1]
+
+== scale c = 1.0: exact training gain over all-regular 0.0439 per student (random -0.0061, IAI policy 0.0113)
+1) age_at_entry < 5.415?
+   yes: female = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 3, 4, 1]; aide-seat order: [3, 2, 1, 4]
+
+== scale c = 1.25: exact training gain over all-regular 0.0471 per student (random -0.0076, IAI policy 0.0104)
+1) age_at_entry < 5.415?
+   yes: female = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 3, 4, 1]; aide-seat order: [3, 2, 1, 4]
+
+== scale c = 1.5: exact training gain over all-regular 0.0431 per student (random -0.008, IAI policy 0.0075)
+1) female = 1?
+   yes: age_at_entry < 5.915? yes: leaf 1, no: leaf 2
+   no:  free_lunch = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 2, 4, 1]; aide-seat order: [3, 4, 1, 2]
+
+== IAI tree (opt_capacity.jl, depth 2):
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: age_at_entry < 5.665
+    2) Prescribe: small, 3436 points, error 15.05
+    3) Prescribe: regular, 1124 points, error 14.83

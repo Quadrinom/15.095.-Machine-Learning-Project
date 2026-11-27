@@ -1,0 +1,31 @@
+fold 4: 3334 valid trees (depth <= 2, leaves >= 50) x all leaf orders checked; 23 candidate splits
+
+== scale c = 0.5: exact training gain over all-regular 0.0475 per student (random -0.0028)
+1) age_at_entry < 5.665?
+   yes: age_at_entry < 5.415? yes: leaf 1, no: leaf 2
+   no:  free_lunch = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 3, 1, 4]; aide-seat order: [4, 2, 1, 3]
+
+== scale c = 0.75: exact training gain over all-regular 0.0497 per student (random -0.0043)
+1) age_at_entry < 5.665?
+   yes: age_at_entry < 5.415? yes: leaf 1, no: leaf 2
+   no:  free_lunch = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 4, 3, 1]; aide-seat order: [4, 2, 1, 3]
+
+== scale c = 1.0: exact training gain over all-regular 0.0481 per student (random -0.0057)
+1) age_at_entry < 5.415?
+   yes: locale in [rural]? yes: leaf 1, no: leaf 2
+   no:  free_lunch = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 3, 2]; aide-seat order: [4, 1, 3, 2]
+
+== scale c = 1.25: exact training gain over all-regular 0.0491 per student (random -0.0071)
+1) free_lunch = 1?
+   yes: age_at_entry < 5.665? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 3, 2]; aide-seat order: [4, 3, 1, 2]
+
+== scale c = 1.5: exact training gain over all-regular 0.0431 per student (random -0.0083)
+1) free_lunch = 1?
+   yes: locale in [rural]? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 2, 3]; aide-seat order: [2, 4, 3, 1]

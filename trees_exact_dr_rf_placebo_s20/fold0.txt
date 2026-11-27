@@ -1,0 +1,49 @@
+fold 0: 7469 valid trees (depth <= 2, leaves >= 50) x all leaf orders checked; 31 candidate splits
+
+== scale c = 0.5: exact training gain over all-regular 0.0538 per student (random 0.006, IAI policy 0.0657)
+1) age_at_entry < 5.165?
+   yes: ethnicity_grp in [black]? yes: leaf 1, no: leaf 2
+   no:  free_lunch = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 4, 3, 1]; aide-seat order: [1, 2, 3, 4]
+
+== scale c = 0.75: exact training gain over all-regular 0.0671 per student (random 0.0085, IAI policy 0.086)
+1) free_lunch = 1?
+   yes: age_at_entry < 5.415? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.165? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 3, 4, 2]; aide-seat order: [1, 3, 2, 4]
+
+== scale c = 1.0: exact training gain over all-regular 0.0677 per student (random 0.0118, IAI policy 0.0841)
+1) age_at_entry < 5.415?
+   yes: female = 1? yes: leaf 1, no: leaf 2
+   no:  locale in [inner-city]? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 2, 4, 1]; aide-seat order: [2, 1, 3, 4]
+
+== scale c = 1.25: exact training gain over all-regular 0.0777 per student (random 0.0154, IAI policy 0.0832)
+1) age_at_entry < 5.415?
+   yes: female = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 2, 1, 4]; aide-seat order: [2, 1, 3, 4]
+
+== scale c = 1.5: exact training gain over all-regular 0.0708 per student (random 0.017, IAI policy 0.0737)
+1) age_at_entry < 5.415?
+   yes: female = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 2, 4, 1]; aide-seat order: [2, 1, 3, 4]
+
+== IAI tree (opt_capacity.jl, depth 3):
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: free_lunch < 0.5
+    2) Split: age_at_entry < 5.165
+      3) Split: female < 0.5
+        4) Prescribe: small, 308 points, error 17.52
+        5) Prescribe: aide, 308 points, error 17.28
+      6) Split: locale in [inner-city,suburban] or is missing
+        7) Prescribe: aide, 650 points, error 17.2
+        8) Prescribe: regular, 1144 points, error 17.16
+    9) Split: age_at_entry < 5.415
+      10) Split: ethnicity_grp in [black,unknown] or is missing
+        11) Prescribe: aide, 682 points, error 17.79
+        12) Prescribe: small, 523 points, error 17.68
+      13) Split: age_at_entry < 5.665
+        14) Prescribe: small, 517 points, error 17.61
+        15) Prescribe: regular, 568 points, error 17.67

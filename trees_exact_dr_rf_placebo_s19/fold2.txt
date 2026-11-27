@@ -1,0 +1,35 @@
+fold 2: 9016 valid trees (depth <= 2, leaves >= 50) x all leaf orders checked; 31 candidate splits
+
+== scale c = 0.5: exact training gain over all-regular 0.0178 per student (random -0.0118, IAI policy -0.0118)
+1) female = 1?
+   yes: locale in [suburban]? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 3, 2]; aide-seat order: [2, 3, 1, 4]
+
+== scale c = 0.75: exact training gain over all-regular 0.0274 per student (random -0.0178, IAI policy -0.0178)
+1) female = 1?
+   yes: locale in [suburban]? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 3, 2]; aide-seat order: [2, 3, 4, 1]
+
+== scale c = 1.0: exact training gain over all-regular 0.0284 per student (random -0.024, IAI policy -0.024)
+1) female = 1?
+   yes: locale in [suburban]? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 3, 2]; aide-seat order: [2, 3, 4, 1]
+
+== scale c = 1.25: exact training gain over all-regular 0.0161 per student (random -0.0302, IAI policy -0.0302)
+1) female = 1?
+   yes: locale in [suburban]? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 3, 2]; aide-seat order: [1, 2, 3, 4]
+
+== scale c = 1.5: exact training gain over all-regular 0.0046 per student (random -0.0351, IAI policy -0.0351)
+1) female = 1?
+   yes: locale in [suburban]? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.165? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 3, 2]; aide-seat order: [1, 2, 4, 3]
+
+== IAI tree (opt_capacity.jl, depth 1):
+Fitted OptimalTreePolicyMaximizer:
+  1) Prescribe: aide, 4560 points, error 17.39

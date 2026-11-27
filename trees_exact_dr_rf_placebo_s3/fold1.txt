@@ -1,0 +1,39 @@
+fold 1: 7088 valid trees (depth <= 2, leaves >= 50) x all leaf orders checked; 31 candidate splits
+
+== scale c = 0.5: exact training gain over all-regular 0.0337 per student (random -0.0034, IAI policy 0.0219)
+1) free_lunch = 1?
+   yes: female = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.165? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 2, 4, 3]; aide-seat order: [3, 4, 2, 1]
+
+== scale c = 0.75: exact training gain over all-regular 0.0429 per student (random -0.0061, IAI policy 0.0291)
+1) free_lunch = 1?
+   yes: female = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.165? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 2, 4, 3]; aide-seat order: [3, 4, 1, 2]
+
+== scale c = 1.0: exact training gain over all-regular 0.0438 per student (random -0.008, IAI policy 0.0267)
+1) free_lunch = 1?
+   yes: female = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.165? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 2, 4, 3]; aide-seat order: [3, 4, 1, 2]
+
+== scale c = 1.25: exact training gain over all-regular 0.0405 per student (random -0.0099, IAI policy 0.018)
+1) age_at_entry < 5.665?
+   yes: age_at_entry < 5.165? yes: leaf 1, no: leaf 2
+   no:  free_lunch = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 2, 1, 4]; aide-seat order: [1, 3, 4, 2]
+
+== scale c = 1.5: exact training gain over all-regular 0.035 per student (random -0.0123, IAI policy 0.006)
+1) age_at_entry < 5.665?
+   yes: age_at_entry < 5.165? yes: leaf 1, no: leaf 2
+   no:  free_lunch = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 2, 1, 4]; aide-seat order: [1, 3, 4, 2]
+
+== IAI tree (opt_capacity.jl, depth 3):
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: ethnicity_grp is black or is missing
+    2) Prescribe: regular, 1208 points, error 21.15
+    3) Split: age_at_entry < 5.165
+      4) Prescribe: aide, 861 points, error 20.95
+      5) Prescribe: small, 2527 points, error 20.79

@@ -1,0 +1,37 @@
+fold 0: 3582 valid trees (depth <= 2, leaves >= 50) x all leaf orders checked; 23 candidate splits
+
+== scale c = 0.5: exact training gain over all-regular 0.0557 per student (random 0.034, IAI policy 0.034)
+1) age_at_entry < 5.665?
+   yes: locale in [rural]? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.915? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 3, 1, 4]; aide-seat order: [1, 4, 2, 3]
+
+== scale c = 0.75: exact training gain over all-regular 0.0807 per student (random 0.0512, IAI policy 0.0512)
+1) age_at_entry < 5.415?
+   yes: locale in [rural,suburban]? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 4, 3, 1]; aide-seat order: [1, 3, 4, 2]
+
+== scale c = 1.0: exact training gain over all-regular 0.1021 per student (random 0.0685, IAI policy 0.0685)
+1) age_at_entry < 5.415?
+   yes: locale in [rural,suburban]? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.665? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [2, 4, 3, 1]; aide-seat order: [1, 3, 4, 2]
+
+== scale c = 1.25: exact training gain over all-regular 0.1197 per student (random 0.0856, IAI policy 0.0856)
+1) age_at_entry < 5.665?
+   yes: free_lunch = 1? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 6.165? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [3, 2, 4, 1]; aide-seat order: [1, 3, 2, 4]
+
+== scale c = 1.5: exact training gain over all-regular 0.1308 per student (random 0.1003, IAI policy 0.1003)
+1) free_lunch = 1?
+   yes: age_at_entry < 5.665? yes: leaf 1, no: leaf 2
+   no:  age_at_entry < 5.415? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [4, 2, 1, 3]; aide-seat order: [1, 4, 3, 2]
+
+== IAI tree (opt_capacity.jl, depth 1):
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: locale in [inner-city,rural] or is missing
+    2) Prescribe: aide, 3271 points, error 19.36
+    3) Prescribe: regular, 1429 points, error 19.18

@@ -1,0 +1,37 @@
+fold 1: 7088 valid trees (depth <= 2, leaves >= 50) x all leaf orders checked; 31 candidate splits
+
+== scale c = 0.5: exact training gain over all-regular 0.0402 per student (random 0.0014, IAI policy 0.0052)
+1) female = 1?
+   yes: age_at_entry < 5.165? yes: leaf 1, no: leaf 2
+   no:  locale in [suburban]? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 2, 3]; aide-seat order: [4, 1, 2, 3]
+
+== scale c = 0.75: exact training gain over all-regular 0.0487 per student (random 0.0017, IAI policy 0.0065)
+1) age_at_entry < 5.165?
+   yes: locale in [rural,suburban]? yes: leaf 1, no: leaf 2
+   no:  free_lunch = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 3, 2]; aide-seat order: [4, 1, 2, 3]
+
+== scale c = 1.0: exact training gain over all-regular 0.0544 per student (random 0.0025, IAI policy 0.0144)
+1) age_at_entry < 5.165?
+   yes: locale in [rural,suburban]? yes: leaf 1, no: leaf 2
+   no:  free_lunch = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 3, 2]; aide-seat order: [4, 1, 2, 3]
+
+== scale c = 1.25: exact training gain over all-regular 0.0548 per student (random 0.0032, IAI policy 0.0168)
+1) age_at_entry < 5.165?
+   yes: locale in [rural,suburban]? yes: leaf 1, no: leaf 2
+   no:  free_lunch = 1? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 4, 3, 2]; aide-seat order: [4, 1, 2, 3]
+
+== scale c = 1.5: exact training gain over all-regular 0.0484 per student (random 0.0056, IAI policy 0.0128)
+1) female = 1?
+   yes: age_at_entry < 5.415? yes: leaf 1, no: leaf 2
+   no:  locale in [rural,suburban]? yes: leaf 3, no: leaf 4
+leaves renumbered 1..4 in that order; small-seat order: [1, 3, 2, 4]; aide-seat order: [4, 2, 1, 3]
+
+== IAI tree (opt_capacity.jl, depth 2):
+Fitted OptimalTreePolicyMaximizer:
+  1) Split: free_lunch < 0.5
+    2) Prescribe: small, 2565 points, error 20.62
+    3) Prescribe: regular, 2031 points, error 21.13
